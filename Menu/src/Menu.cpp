@@ -33,15 +33,15 @@ using namespace std;
 class TestMenu {
 private:
 	string name;
-	Menu root{Menu(string("root"))};
+	Menu root;
 	MenuLeaf welcome{MenuLeaf(string("welcome"))};
 	MenuLeaf ciao{MenuLeaf(string("ciao"))};
 	MenuLeaf dany{MenuLeaf(string("dany"))};
 
-	Menu system{Menu(string("system"))};
+	SubMenu system{SubMenu(string("system"))};
 	MenuLeaf network{MenuLeaf(string("network"))};
 	MenuLeaf cpu{MenuLeaf(string("cpu"))};
-	Menu sensors{Menu(string("sensors"))};
+	SubMenu sensors{SubMenu(string("sensors"))};
 	MenuLeaf temperature{MenuLeaf(string("temperature"))};
 	MenuLeaf pressure{MenuLeaf(string("pressure"))};
 

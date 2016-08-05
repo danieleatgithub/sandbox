@@ -30,10 +30,11 @@ class MenuComponent {
 		}
 		virtual ~MenuComponent() {};
 		virtual void traverse() = 0;
-		virtual MenuComponent*  up() { return(parent->prev()); }
-		virtual MenuComponent*  down() { return(parent->next()); }
-		virtual MenuComponent*  left() { return(parent->back()); }
+		virtual MenuComponent*  up()    { return(parent->prev()); }
+		virtual MenuComponent*  down()  { return(parent->next()); }
+		virtual MenuComponent*  left()  { return(parent->back()); }
 		virtual MenuComponent*  right() { return(this); }
+
 		virtual MenuComponent*  prev() { return(this); }
 		virtual MenuComponent*  next() { return(this); }
 		virtual MenuComponent*  back() { return(this); }
@@ -47,13 +48,13 @@ class MenuComponent {
 
 
 
-class MenuComposite : public MenuComponent {
+class SubMenu : public MenuComponent {
+protected:
    vector<MenuComponent*> children;
-   stack<MenuComponent*> tracker;
    vector<MenuComponent*>::iterator cursor;
 
 public:
-   MenuComposite(string label) : MenuComponent(label) {
+   SubMenu(string label) : MenuComponent(label) {
 
    }
    void add( MenuComponent* c ) {
@@ -81,33 +82,14 @@ public:
 	   return(*cursor);
    }
    MenuComponent* back() {
-	   if(tracker.size() > 0) {
-		   auto ret = tracker.top();
-		   tracker.pop();
-		   return(ret);
-	   } else {
 		   return(this);
-	   }
    }
    MenuComponent* right() {
-	   tracker.push(this);
 	   return(*cursor);
    }
 
    void show() {
 	   cout << __PRETTY_FUNCTION__ << label << ">" << endl;
-   }
-};
-
-class MenuSysInfo : public MenuComponent {
-
-public:
-   MenuSysInfo(string label  ) : MenuComponent(label) {  }
-   void traverse()      {
-	   cout << "(SYSINFOMENU) " << label << endl;
-   }
-   void show() {
-	   cout << __PRETTY_FUNCTION__ << label<< endl;
    }
 };
 
@@ -124,34 +106,23 @@ public:
 
 };
 
-class Menu : public MenuComposite {
+class Menu : public SubMenu {
 	public:
-	Menu(string label) : MenuComposite(label) { }   // "container".  La maggior parte del
-   void traverse() {                       // codice è nella classe base Composite
+	Menu() : SubMenu(string("root")) { }
+
+	MenuComponent*  back()  {
+		 return(*cursor);
+	}
+
+
+
+
+   void traverse() {
 	   cout << "(MENU) " << label <<endl;
-      MenuComposite::traverse();
+      SubMenu::traverse();
    }
 
 };
-
-
-class Row : public MenuComposite {
-   public:     // Due diversi tipi di classi
-   Row(  ) : MenuComposite(label ) { }   // "container".  La maggior parte del
-   void traverse() {                       // codice è nella classe base Composite
-      cout << "Row";
-      MenuComposite::traverse();
-}  };
-
-
-
-class Column : public MenuComposite {
-   public:
-   Column(string label  ) : MenuComposite(label  ) { }
-   void traverse() {
-      cout << "Col";
-      MenuComposite::traverse();
-}  };
 
 
 
