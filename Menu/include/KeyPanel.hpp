@@ -37,7 +37,8 @@ enum Button_e {
 	BUTTON_UP = KEY_UP,      //!< BUTTON_UP
 	BUTTON_DOWN = KEY_DOWN,  //!< BUTTON_DOWN
 	BUTTON_LEFT = KEY_LEFT,  //!< BUTTON_LEFT
-	BUTTON_RIGHT = KEY_RIGHT //!< BUTTON_RIGHT
+	BUTTON_RIGHT = KEY_RIGHT, //!< BUTTON_RIGHT
+	BUTTON_NULL = KEY_RESERVED //!< no button
 };
 
 
@@ -56,6 +57,9 @@ public:
 		valid = false;
 		pressed = false;
 		long_threshold = std::chrono::milliseconds(1000);
+		key.code = BUTTON_NULL;
+		key.value = 0;
+		press_time = std::chrono::milliseconds(0);
 	}
 	void load_event(struct input_event ev) {
 		key = ev;

@@ -25,6 +25,7 @@ private:
     MenuComponent* active;
 	DisplayVisitor dw;
 	LoggerVisitor lw;
+	KeyButton nokey;
 
 	MenuLeaf welcome{MenuLeaf(string("welcome"))};
 	MenuLeaf ciao{MenuLeaf(string("ciao"))};
@@ -36,10 +37,23 @@ private:
 	SubMenu sensors{SubMenu(string("sensors"))};
 	MenuLeaf temperature{MenuLeaf(string("temperature"))};
 	MenuLeaf pressure{MenuLeaf(string("pressure"))};
+	void leave(KeyButton& k) {
+		 active->exe_leave(dw,k);
+		 active->exe_leave(lw,k);
+	}
+	void enter(KeyButton& k) {
+		 active->exe_enter(dw,k);
+		 active->exe_enter(lw,k);
+	}
+	void click(KeyButton& k) {
+		active->exe_click(dw,k);
+		active->exe_click(lw,k);
 
+	}
 public:
     HomerMenu() {
 		active = nullptr;
+
 		root.add(&welcome);
 		root.add(&ciao);
 		sensors.add(&temperature);
@@ -52,7 +66,9 @@ public:
 		root.add(&dany);
 		timedHome.setCallback([&] () {
 			cout << "Timed Home" << endl;
+			leave(nokey);
 			active = root.home();
+			enter(nokey);
 		});
 	}
 	virtual ~HomerMenu() {}
@@ -61,14 +77,11 @@ public:
 		key_panel.key_attach([&] ( KeyButton& k ) {
 				 sch.ScheduleCancel(timedHome);
 				 if(k.get_key() == BUTTON_ENTER) {
-					 active->exe_click(dw,k);
-					 active->exe_click(lw,k);
+					 click(k);
 				 } else {
-					 active->exe_leave(dw,k);
-					 active->exe_leave(lw,k);
+					 leave(k);
 					 active = active->move(k);
-					 active->exe_enter(dw,k);
-					 active->exe_enter(lw,k);
+					 enter(k);
 				 }
 			 sch.ScheduleAfter(std::chrono::seconds(30),timedHome);
 		});
