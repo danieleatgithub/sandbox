@@ -20,7 +20,7 @@
 #include <stack>
 #include <Scheduler.hpp>
 #include <KeyPanel.hpp>
-#include <MenuComponentVisitor.hpp>
+#include <MenuVisitors.hpp>
 
 using namespace std;
 using namespace homerio;
@@ -29,7 +29,7 @@ using namespace shd;
 
 namespace homerio {
 
-class MenuComponentVisitor;
+class MenuActionVisitor;
 
 /**
  * MenuComponent implements an abstract element in a menu
@@ -37,40 +37,25 @@ class MenuComponentVisitor;
  */
 class MenuComponent {
 	protected:
-		MenuComponent* parent;
-
+		string label;
 
 	public:
-		string label;
-		MenuComponent(string label,MenuComponent* parent) {
-			this->label = label;
-			this->parent = parent;
-		}
 		MenuComponent(string label) {
 			this->label = label;
-			this->parent = nullptr;
 		}
 		virtual ~MenuComponent() {};
-		// Tree movement
-		virtual MenuComponent*  prev() { return(this); }
-		virtual MenuComponent*  next() { return(this); }
-		virtual MenuComponent*  back() { return(this); }
 
-		// Navigation method
-		virtual MenuComponent*  move(KeyButton& k) = 0;
+
+		string get_label() {
+			return label;
+		}
 
 		// Visitors interface
-		virtual void exe_enter(MenuComponentVisitor& m, KeyButton& k) 	= 0;
-		virtual void exe_leave(MenuComponentVisitor& m, KeyButton& k) 	= 0;
-		virtual void exe_click(MenuComponentVisitor& m, KeyButton& k) 	= 0;
+		virtual void exe_enter(MenuActionVisitor& m, KeyButton& k) 	= 0;
+		virtual void exe_leave(MenuActionVisitor& m, KeyButton& k) 	= 0;
+		virtual void exe_click(MenuActionVisitor& m, KeyButton& k) 	= 0;
 
-		/**
-		 *
-		 * @param p
-		 */
-		void set_parent(MenuComponent * p) {
-			this->parent = p;
-		}
+		virtual MenuComponent* exe_move(MenuNavigatorVisitor& m,KeyButton& k) = 0;
 };
 
 
@@ -85,37 +70,9 @@ protected:
    vector<MenuComponent*> children;
    vector<MenuComponent*>::iterator cursor;
 
-   /**
-    *
-    * @return the previous element in submenu
-    */
-   MenuComponent* prev() {
-	   if(cursor != children.begin()) cursor--;
-	   return(*cursor);
-   }
-   /**
-    *
-    * @return the next element in submenu
-    */
-  MenuComponent* next() {
-	   cursor++;
-	   if(cursor == children.end()) {
-		   cursor--;
-	   }
-	   return(*cursor);
-   }
-
-  MenuComponent* back() {
-	   if(parent == nullptr) {
-		   return(*cursor);
-	   } else {
-		   return(this);
-	   }
-   }
-
 
 public:
-   SubMenu(string label) : MenuComponent(label) {}
+   SubMenu(string label) : MenuComponent(label) { }
    /**
     *
     * @param c
@@ -123,47 +80,43 @@ public:
     */
    void add( MenuComponent* c ) {
 	   children.push_back( c );
-	   c->set_parent(this);
 	   cursor = children.begin();
    }
-   MenuComponent *home() {
+   void home() {
 	   cursor = children.begin();
-	   return(*cursor);
    }
    /**
     *
     * @return
     * Return the active element in submenu
     */
-   MenuComponent *get_active() {
+   MenuComponent *get_active_element() {
 	   return(*cursor);
    }
 
-   virtual MenuComponent* move(KeyButton& k) {
-		 switch(k.get_key()) {
-			 case BUTTON_UP:
-				 return(parent->prev());
-			 case BUTTON_DOWN:
-				 return(parent->next());
-			 case BUTTON_LEFT:
-				 return(parent->back());
-			 case BUTTON_RIGHT:
-				 return(*cursor);
-			 default:
-					throw std::runtime_error((string("Unexpected key ")+ string(k)).c_str());
-				 break;
-		 }
+   MenuComponent *get_previous_element() {
+	   if(cursor != children.begin()) cursor--;
+	   return(*cursor);
+   }
+   MenuComponent *get_next_element() {
+		 cursor++;
+		 if(cursor == children.end()) cursor--;
+	   return(*cursor);
    }
 
    // Visitor Interfaces
-   void exe_click(MenuComponentVisitor& m,KeyButton& k) {
-	   m.click(*this,k);
+   virtual void exe_click(MenuActionVisitor& m,KeyButton& k) {
+ 	   m.click(*this,k);
    }
-   void exe_enter(MenuComponentVisitor& m,KeyButton& k) {
-	   m.enter(*this,k);
+   virtual void exe_enter(MenuActionVisitor& m,KeyButton& k) {
+ 	   m.enter(*this,k);
    }
-   void exe_leave(MenuComponentVisitor& m,KeyButton& k) {
-	   m.leave(*this,k);
+   virtual void exe_leave(MenuActionVisitor& m,KeyButton& k) {
+ 	   m.leave(*this,k);
+   }
+
+   virtual MenuComponent* exe_move(MenuNavigatorVisitor& m,KeyButton& k) {
+ 	   return(m.move(*this,k));
    }
 
 };
@@ -173,35 +126,23 @@ public:
  */
 class MenuLeaf : public MenuComponent {
 
+
 public:
-   MenuLeaf(string label)  : MenuComponent(label) {  }
+   MenuLeaf(string label)  : MenuComponent(label) {
 
-
-   virtual MenuComponent* move(KeyButton& k) {
-			 switch(k.get_key()) {
-				 case BUTTON_UP:
-					 return(parent->prev());
-				 case BUTTON_DOWN:
-					 return(parent->next());
-				 case BUTTON_LEFT:
-					 return(parent->back());
-				 case BUTTON_RIGHT:
-					 return(this);
-				 default:
-						throw std::runtime_error((string("Unexpected key ")+ string(k)).c_str());
-					 break;
-			 }
-	   }
-
-    // Visitor Interfaces
-   void exe_click(MenuComponentVisitor& m,KeyButton& k) {
+   }
+   // Visitor Interfaces
+   virtual void exe_click(MenuActionVisitor& m,KeyButton& k) {
 	   m.click(*this,k);
-   }
-   void exe_enter(MenuComponentVisitor& m,KeyButton& k) {
+  }
+   virtual void exe_enter(MenuActionVisitor& m,KeyButton& k) {
 	   m.enter(*this,k);
-   }
-   void exe_leave(MenuComponentVisitor& m,KeyButton& k) {
+  }
+   virtual void exe_leave(MenuActionVisitor& m,KeyButton& k) {
 	   m.leave(*this,k);
+  }
+   virtual MenuComponent* exe_move(MenuNavigatorVisitor& m,KeyButton& k) {
+ 	   return(m.move(*this,k));
    }
 
 };

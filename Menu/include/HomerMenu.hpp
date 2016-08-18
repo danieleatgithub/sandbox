@@ -8,6 +8,7 @@
 #ifndef HOMERMENU_HPP_
 #define HOMERMENU_HPP_
 #include <Menu.hpp>
+#include <mutex>
 
 namespace homerio {
 
@@ -22,10 +23,14 @@ class HomerMenu {
 private:
 	SubMenu root{SubMenu(string("root"))};
     Task timedHome;
-    MenuComponent* active;
+    MenuComponent *active_element;
+
 	DisplayVisitor dw;
 	LoggerVisitor lw;
+	MoveVisitor mv;
+
 	KeyButton nokey;
+	std::mutex mutex;
 
 	MenuLeaf welcome{MenuLeaf(string("welcome"))};
 	MenuLeaf ciao{MenuLeaf(string("ciao"))};
@@ -38,21 +43,20 @@ private:
 	MenuLeaf temperature{MenuLeaf(string("temperature"))};
 	MenuLeaf pressure{MenuLeaf(string("pressure"))};
 	void leave(KeyButton& k) {
-		 active->exe_leave(dw,k);
-		 active->exe_leave(lw,k);
+		active_element->exe_leave(dw,k);
+		active_element->exe_leave(lw,k);
 	}
 	void enter(KeyButton& k) {
-		 active->exe_enter(dw,k);
-		 active->exe_enter(lw,k);
+		active_element->exe_enter(dw,k);
+		active_element->exe_enter(lw,k);
 	}
 	void click(KeyButton& k) {
-		active->exe_click(dw,k);
-		active->exe_click(lw,k);
+		active_element->exe_click(dw,k);
+		active_element->exe_click(lw,k);
 
 	}
 public:
     HomerMenu() {
-		active = nullptr;
 
 		root.add(&welcome);
 		root.add(&ciao);
@@ -64,23 +68,32 @@ public:
 
 		root.add(&system);
 		root.add(&dany);
+
+    	active_element = root.get_active_element();
+
+    	root.home();
+    	mv.init(&root);
+
 		timedHome.setCallback([&] () {
 			cout << "Timed Home" << endl;
 			leave(nokey);
-			active = root.home();
+			mutex.lock();
+			active_element = mv.home();
+			mutex.unlock();
 			enter(nokey);
 		});
 	}
 	virtual ~HomerMenu() {}
 	void start(KeyPanel& key_panel, Scheduler& sch) {
-		active = root.home();
 		key_panel.key_attach([&] ( KeyButton& k ) {
 				 sch.ScheduleCancel(timedHome);
 				 if(k.get_key() == BUTTON_ENTER) {
 					 click(k);
 				 } else {
 					 leave(k);
-					 active = active->move(k);
+					 mutex.lock();
+					 active_element = active_element->exe_move(mv,k);
+					 mutex.unlock();
 					 enter(k);
 				 }
 			 sch.ScheduleAfter(std::chrono::seconds(30),timedHome);

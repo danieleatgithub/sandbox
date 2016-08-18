@@ -21,6 +21,7 @@
 #include <log4cplus/tchar.h>
 #include <DisplayVisitor.hpp>
 #include <LoggerVisitor.hpp>
+#include <MoveVisitor.hpp>
 #include <HomerMenu.hpp>
 
 using namespace std;

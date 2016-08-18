@@ -5,8 +5,8 @@
  *      Author: daniele
  */
 
-#ifndef MENUCOMPONENTVISITOR_HPP_
-#define MENUCOMPONENTVISITOR_HPP_
+#ifndef MENUVISITORS_HPP_
+#define MENUVISITORS_HPP_
 
 #include <Menu.hpp>
 #include <KeyPanel.hpp>
@@ -15,14 +15,14 @@
 
 namespace homerio {
 
-
+class MenuComponent;
 class MenuLeaf;
 class SubMenu;
 
-class MenuComponentVisitor
+class MenuActionVisitor
 {
 public:
-	virtual ~MenuComponentVisitor() {};
+	virtual ~MenuActionVisitor() {};
 	virtual void enter(MenuLeaf& l,KeyButton& k) 	= 0;
 	virtual void leave(MenuLeaf& l,KeyButton& k) = 0;
 	virtual void click(MenuLeaf& l,KeyButton& k) = 0;
@@ -30,8 +30,18 @@ public:
 	virtual void enter(SubMenu& l,KeyButton& k) 	= 0;
 	virtual void leave(SubMenu& l,KeyButton& k) = 0;
 	virtual void click(SubMenu& l,KeyButton& k) = 0;
+
+};
+
+class MenuNavigatorVisitor
+{
+public:
+	virtual ~MenuNavigatorVisitor() {};
+	virtual MenuComponent* move(MenuLeaf& m,KeyButton& k) = 0;
+	virtual MenuComponent* move(SubMenu& m,KeyButton& k) = 0;
+
 };
 
 }
 
-#endif /* MENUCOMPONENTVISITOR_HPP_ */
+#endif /* MENUVISITORS_HPP_ */

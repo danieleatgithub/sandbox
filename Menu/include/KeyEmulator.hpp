@@ -174,7 +174,7 @@ private:
         	KEY_EMULATOR_DIE("error: write");
         usleep(100);
     }
-    void key_thread_emulator() {
+    void key_thread_emulator(bool mode) {
         struct timeval tv;
         fd_set fds;
         tv.tv_sec = 1;
@@ -217,6 +217,11 @@ private:
     			}
     			if(running) {
     				k_write(EV_KEY,current_key,current_val);
+    				if(mode) {
+    					usleep(100000);
+    					current_val = 0;
+    					k_write(EV_KEY,current_key,current_val);
+    				}
     			}
 
     		}
@@ -246,7 +251,7 @@ public:
     }
 	void start() {
         stdin_unbuffered();
-		this->key_thread = std::thread([&] { KeyEmulator::key_thread_emulator(); });
+		this->key_thread = std::thread([&] { KeyEmulator::key_thread_emulator(true); });
 	}
 	void stop() {
 		this->running = false;
