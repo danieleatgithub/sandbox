@@ -205,9 +205,6 @@ private:
 					case '0':
 						current_key = KEY_ENTER;
 						break;
-					case '.':
-						running = false;
-						break;
 					case '+':
 						current_val = 0;
 						break;

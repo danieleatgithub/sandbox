@@ -18,6 +18,7 @@
 #include <vector>
 #include <iterator>
 #include <stack>
+#include <memory>
 #include <Scheduler.hpp>
 #include <KeyPanel.hpp>
 #include <MenuVisitors.hpp>
@@ -45,7 +46,6 @@ class MenuComponent {
 		}
 		virtual ~MenuComponent() {};
 
-
 		string get_label() {
 			return label;
 		}
@@ -55,7 +55,7 @@ class MenuComponent {
 		virtual void exe_leave(MenuActionVisitor& m, KeyButton& k) 	= 0;
 		virtual void exe_click(MenuActionVisitor& m, KeyButton& k) 	= 0;
 
-		virtual MenuComponent* exe_move(MenuNavigatorVisitor& m,KeyButton& k) = 0;
+		virtual shared_ptr<MenuComponent> exe_move(MenuNavigatorVisitor& m,KeyButton& k) = 0;
 };
 
 
@@ -65,20 +65,22 @@ class MenuComponent {
  * container of MenuComponents
  *
  */
-class SubMenu : public MenuComponent {
+class SubMenu :  public MenuComponent  {
 protected:
-   vector<MenuComponent*> children;
-   vector<MenuComponent*>::iterator cursor;
+   vector<shared_ptr<MenuComponent>> children;
+   vector<shared_ptr<MenuComponent>>::iterator cursor;
 
 
 public:
    SubMenu(string label) : MenuComponent(label) { }
+
+
    /**
     *
     * @param c
     * MenuComponent to add to SubMenu
     */
-   void add( MenuComponent* c ) {
+   void add( shared_ptr<MenuComponent> c ) {
 	   children.push_back( c );
 	   cursor = children.begin();
    }
@@ -90,15 +92,15 @@ public:
     * @return
     * Return the active element in submenu
     */
-   MenuComponent *get_active_element() {
+   shared_ptr<MenuComponent> get_active_element() {
 	   return(*cursor);
    }
 
-   MenuComponent *get_previous_element() {
+   shared_ptr<MenuComponent> get_previous_element() {
 	   if(cursor != children.begin()) cursor--;
 	   return(*cursor);
    }
-   MenuComponent *get_next_element() {
+   shared_ptr<MenuComponent> get_next_element() {
 		 cursor++;
 		 if(cursor == children.end()) cursor--;
 	   return(*cursor);
@@ -115,7 +117,7 @@ public:
  	   m.leave(*this,k);
    }
 
-   virtual MenuComponent* exe_move(MenuNavigatorVisitor& m,KeyButton& k) {
+   virtual shared_ptr<MenuComponent> exe_move(MenuNavigatorVisitor& m,KeyButton& k) {
  	   return(m.move(*this,k));
    }
 
@@ -141,7 +143,7 @@ public:
    virtual void exe_leave(MenuActionVisitor& m,KeyButton& k) {
 	   m.leave(*this,k);
   }
-   virtual MenuComponent* exe_move(MenuNavigatorVisitor& m,KeyButton& k) {
+   virtual shared_ptr<MenuComponent> exe_move(MenuNavigatorVisitor& m,KeyButton& k) {
  	   return(m.move(*this,k));
    }
 

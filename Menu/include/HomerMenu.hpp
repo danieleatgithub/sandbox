@@ -9,6 +9,7 @@
 #define HOMERMENU_HPP_
 #include <Menu.hpp>
 #include <mutex>
+#include <memory>
 
 namespace homerio {
 
@@ -21,58 +22,54 @@ namespace homerio {
  */
 class HomerMenu {
 private:
-	SubMenu root{SubMenu(string("root"))};
+
     Task timedHome;
-    MenuComponent *active_element;
+    shared_ptr<MenuComponent> active_element;
 
 	DisplayVisitor dw;
-	LoggerVisitor lw;
 	MoveVisitor mv;
 
 	KeyButton nokey;
 	std::mutex mutex;
 
-	MenuLeaf welcome{MenuLeaf(string("welcome"))};
-	MenuLeaf ciao{MenuLeaf(string("ciao"))};
-	MenuLeaf dany{MenuLeaf(string("dany"))};
+	shared_ptr<SubMenu> root = std::make_shared<SubMenu>(string("root"));
+	shared_ptr<MenuLeaf> welcome = std::make_shared<MenuLeaf>(string("welcome"));
+	shared_ptr<MenuLeaf> ciao = std::make_shared<MenuLeaf>(string("ciao"));
+	shared_ptr<MenuLeaf> dany = std::make_shared<MenuLeaf>(string("dany"));
+	shared_ptr<SubMenu> system = std::make_shared<SubMenu>(string("system"));
+	shared_ptr<MenuLeaf> network = std::make_shared<MenuLeaf>(string("network"));
+	shared_ptr<MenuLeaf> cpu = std::make_shared<MenuLeaf>(string("cpu"));
+	shared_ptr<SubMenu> sensors = std::make_shared<SubMenu>(string("sensors"));
+	shared_ptr<MenuLeaf> temperature = std::make_shared<MenuLeaf>(string("temperature"));
+	shared_ptr<MenuLeaf> pressure = std::make_shared<MenuLeaf>(string("pressure"));
 
-	SubMenu system{SubMenu(string("system"))};
-	MenuLeaf network{MenuLeaf(string("network"))};
-	MenuLeaf cpu{MenuLeaf(string("cpu"))};
-	SubMenu sensors{SubMenu(string("sensors"))};
-	MenuLeaf temperature{MenuLeaf(string("temperature"))};
-	MenuLeaf pressure{MenuLeaf(string("pressure"))};
 	void leave(KeyButton& k) {
 		active_element->exe_leave(dw,k);
-		active_element->exe_leave(lw,k);
 	}
 	void enter(KeyButton& k) {
 		active_element->exe_enter(dw,k);
-		active_element->exe_enter(lw,k);
 	}
 	void click(KeyButton& k) {
 		active_element->exe_click(dw,k);
-		active_element->exe_click(lw,k);
-
 	}
 public:
     HomerMenu() {
 
-		root.add(&welcome);
-		root.add(&ciao);
-		sensors.add(&temperature);
-		sensors.add(&pressure);
-		system.add(&network);
-		system.add(&cpu);
-		system.add(&sensors);
+		root->add(welcome);
+		root->add(ciao);
+		sensors->add(temperature);
+		sensors->add(pressure);
+		system->add(network);
+		system->add(cpu);
+		system->add(sensors);
 
-		root.add(&system);
-		root.add(&dany);
+		root->add(system);
+		root->add(dany);
 
-    	active_element = root.get_active_element();
+    	active_element = root->get_active_element();
 
-    	root.home();
-    	mv.init(&root);
+    	root->home();
+    	mv.init(*root.get());
 
 		timedHome.setCallback([&] () {
 			cout << "Timed Home" << endl;
@@ -83,10 +80,13 @@ public:
 			enter(nokey);
 		});
 	}
-	virtual ~HomerMenu() {}
+	virtual ~HomerMenu() {
+		cout << "HM ended" << endl;
+	}
 	void start(KeyPanel& key_panel, Scheduler& sch) {
 		key_panel.key_attach([&] ( KeyButton& k ) {
 				 sch.ScheduleCancel(timedHome);
+				 cout << "H" << k.get_key() << endl;
 				 if(k.get_key() == BUTTON_ENTER) {
 					 click(k);
 				 } else {

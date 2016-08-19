@@ -15,56 +15,58 @@ namespace homerio {
 
 
 class MoveVisitor : public MenuNavigatorVisitor {
-	stack<SubMenu*> history;
+	stack<reference_wrapper<SubMenu>> history;
 
 public:
 	MoveVisitor() {	};
 	virtual ~MoveVisitor() {};
-	void init(SubMenu *m) { history.push(m); }
-	MenuComponent* home() {
+	void init(SubMenu& m) {
+		history.push(m);
+	}
+	shared_ptr<MenuComponent> home() {
 		while(history.size() > 1) {
-			 history.top()->home();
+			 history.top().get().home();
 			 history.pop();
 		}
-		history.top()->home();
-		return(history.top()->get_active_element());
+		history.top().get().home();
+		return(history.top().get().get_active_element());
 	}
 
-	virtual MenuComponent* move(MenuLeaf& m,KeyButton& k) 	{
+	virtual shared_ptr<MenuComponent> move(MenuLeaf& m,KeyButton& k) 	{
 		 switch(k.get_key()) {
 			 case BUTTON_UP:
-				 return(history.top()->get_previous_element());
+				 return(history.top().get().get_previous_element());
 			 case BUTTON_DOWN:
-				 return(history.top()->get_next_element());
+				 return(history.top().get().get_next_element());
 			 case BUTTON_LEFT:
 				 if(history.size() > 1) {
-					 history.top()->home();
+					 history.top().get().home();
 					 history.pop();
 				 }
-				 return(history.top()->get_active_element());
+				 return(history.top().get().get_active_element());
 			 case BUTTON_RIGHT:
-				 return(&m);
+				 return(history.top().get().get_active_element());
 			 default:
 					throw std::runtime_error((string("Unexpected key ")+ string(k)).c_str());
 				 break;
 		 }
 	}
 
-	virtual MenuComponent* move(SubMenu& m,KeyButton& k) 	{
+	virtual shared_ptr<MenuComponent> move(SubMenu& m,KeyButton& k) 	{
 		 switch(k.get_key()) {
 			 case BUTTON_UP:
-				 return(history.top()->get_previous_element());
+				 return(history.top().get().get_previous_element());
 			 case BUTTON_DOWN:
-				 return(history.top()->get_next_element());
+				 return(history.top().get().get_next_element());
 			 case BUTTON_LEFT:
 				 if(history.size() > 1) {
-					 history.top()->home();
+					 history.top().get().home();
 					 history.pop();
 				 }
-				 return(history.top()->get_active_element());
+				 return(history.top().get().get_active_element());
 			 case BUTTON_RIGHT:
-				 history.push(&m);
-				 return(history.top()->get_active_element());
+				 history.push(m);
+				 return(history.top().get().get_active_element());
 			 default:
 					throw std::runtime_error((string("Unexpected key ")+ string(k)).c_str());
 				 break;

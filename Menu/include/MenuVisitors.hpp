@@ -23,7 +23,7 @@ class MenuActionVisitor
 {
 public:
 	virtual ~MenuActionVisitor() {};
-	virtual void enter(MenuLeaf& l,KeyButton& k) 	= 0;
+	virtual void enter(MenuLeaf& l,KeyButton& k) = 0;
 	virtual void leave(MenuLeaf& l,KeyButton& k) = 0;
 	virtual void click(MenuLeaf& l,KeyButton& k) = 0;
 
@@ -37,8 +37,8 @@ class MenuNavigatorVisitor
 {
 public:
 	virtual ~MenuNavigatorVisitor() {};
-	virtual MenuComponent* move(MenuLeaf& m,KeyButton& k) = 0;
-	virtual MenuComponent* move(SubMenu& m,KeyButton& k) = 0;
+	virtual shared_ptr<MenuComponent> move(MenuLeaf& m,KeyButton& k) = 0;
+	virtual shared_ptr<MenuComponent> move(SubMenu& m,KeyButton& k) = 0;
 
 };
 

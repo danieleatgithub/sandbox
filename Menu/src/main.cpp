@@ -20,7 +20,6 @@
 #include <log4cplus/loglevel.h>
 #include <log4cplus/tchar.h>
 #include <DisplayVisitor.hpp>
-#include <LoggerVisitor.hpp>
 #include <MoveVisitor.hpp>
 #include <HomerMenu.hpp>
 

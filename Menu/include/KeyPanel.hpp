@@ -170,7 +170,7 @@ class KeyPanel {
     	this->key_counter = 0;
     }
     ~KeyPanel() {
-
+    	stop();
     }
     void key_attach(std::function<void (KeyButton& k)> f) {
     	reg_release_obs = key_release_obs.registerObserver(f);
