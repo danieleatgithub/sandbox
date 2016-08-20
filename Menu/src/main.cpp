@@ -34,28 +34,25 @@ struct termios t;
 int main() {
 	string name;
 
+	// Poperties load and init
 	initialize();
     PropertyConfigurator config("/wks/workspace/sandbox/Menu/src/homerd.properties");
     config.configure();
 
 	Logger logger = Logger::getRoot();
-	HomerMenu homerMenu;
-	KeyPanel key_panel;
-	Scheduler sch;
+
+
+	Scheduler 	sch;
+	HomerMenu 	homerMenu;
 	KeyEmulator key_emulator;
+	KeyPanel 	key_panel;
 
-	key_emulator.start(); // Start Emulator
-	sleep(2); // FIXME fare start sincrono
-
-	key_panel.set_event_filename(key_emulator.get_event().c_str());
-	sleep(2); // FIXME fare start sincrono
-	cout << "READY" << endl;
+	key_emulator.start(); // Start keyboard Emulator
+	key_panel.set_event_filename(key_emulator.getEvent().c_str());
 	key_panel.start();  // Start keyPanel
-
 	homerMenu.start(key_panel,sch); // Start Menu
 
-	sleep(120);
-	key_emulator.stop();
+	key_emulator.join();
 
 
 	return 0;
