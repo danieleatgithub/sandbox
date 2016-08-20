@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include <stdlib.h>
+#include <pthread.h>
 
 using namespace obs;
 using namespace std;
@@ -130,7 +131,8 @@ class KeyPanel {
     	while(running) {
     			// blocking event reader
     	    	read(this->fd, &ev, size);
-    	    	LOG4CPLUS_DEBUG(logdev, "code=" << ev.code <<
+       	    	if(!running) break;
+       	    	LOG4CPLUS_DEBUG(logdev, "code=" << ev.code <<
     	    							"type=" <<  ev.type <<
     									"value="<< ev.value <<
     									"s=" << ev.time.tv_sec <<
@@ -212,9 +214,12 @@ class KeyPanel {
     		LOG4CPLUS_WARN(logdev, "KeyPanel thread not active\n");
     		return(1);
     	}
+
     	this->running = false;
+    	// Need native cancel due blocking read that consume less cpu then timed select
+    	pthread_cancel(this->key_thread.native_handle());
     	this->key_thread.join();
-    	close(this->fd);
+       	close(this->fd);
     	this->fd = -1;
     	return(0);
     }
