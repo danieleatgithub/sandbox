@@ -18,11 +18,15 @@ class MoveVisitor : public MenuNavigatorVisitor {
 	stack<reference_wrapper<SubMenu>> history;
 
 public:
-	MoveVisitor() {	};
+	MoveVisitor(shared_ptr<SubMenu> m)  {
+		history.push(*m.get());
+	};
 	virtual ~MoveVisitor() {};
-	void init(SubMenu& m) {
-		history.push(m);
-	}
+	/**
+	 * Reset history and jump back to home
+	 * @return
+	 * pointer to the first element in root menu
+	 */
 	shared_ptr<MenuComponent> home() {
 		while(history.size() > 1) {
 			 history.top().get().home();
@@ -31,6 +35,7 @@ public:
 		history.top().get().home();
 		return(history.top().get().get_active_element());
 	}
+
 
 	virtual shared_ptr<MenuComponent> move(MenuLeaf& m,KeyButton& k) 	{
 		 switch(k.get_key()) {

@@ -18,6 +18,7 @@
 #define TRACE_TMP2 do { \
 	cout << __PRETTY_FUNCTION__ << l.get_label() << ">" << endl; \
 } while(0)
+
 namespace homerio {
 
 class DisplayVisitor : public MenuActionVisitor {

@@ -70,10 +70,8 @@ protected:
    vector<shared_ptr<MenuComponent>> children;
    vector<shared_ptr<MenuComponent>>::iterator cursor;
 
-
 public:
    SubMenu(string label) : MenuComponent(label) { }
-
 
    /**
     *
@@ -84,22 +82,37 @@ public:
 	   children.push_back( c );
 	   cursor = children.begin();
    }
-   void home() {
+   /**
+    * Go to the top of the menu
+    * @return
+    * pointer to the first element in submenu
+    */
+   shared_ptr<MenuComponent> home() {
 	   cursor = children.begin();
+	   return(*cursor);
    }
    /**
     *
     * @return
-    * Return the active element in submenu
+    * pointer to the active element in submenu
     */
    shared_ptr<MenuComponent> get_active_element() {
 	   return(*cursor);
    }
-
+   /**
+    *
+    * @return
+    * pointer to the previous element in submenu
+    */
    shared_ptr<MenuComponent> get_previous_element() {
 	   if(cursor != children.begin()) cursor--;
 	   return(*cursor);
    }
+   /**
+    *
+    * @return
+    * pointer to the next element in submenu
+    */
    shared_ptr<MenuComponent> get_next_element() {
 		 cursor++;
 		 if(cursor == children.end()) cursor--;
@@ -128,11 +141,8 @@ public:
  */
 class MenuLeaf : public MenuComponent {
 
-
 public:
-   MenuLeaf(string label)  : MenuComponent(label) {
-
-   }
+   MenuLeaf(string label)  : MenuComponent(label) {}
    // Visitor Interfaces
    virtual void exe_click(MenuActionVisitor& m,KeyButton& k) {
 	   m.click(*this,k);

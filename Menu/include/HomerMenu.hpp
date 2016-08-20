@@ -17,17 +17,16 @@ namespace homerio {
 
 
 /**
- * Root Menu
+ * Homer Menu
  *
  */
 class HomerMenu {
 private:
 
     Task timedHome;
+
     shared_ptr<MenuComponent> active_element;
 
-	DisplayVisitor dw;
-	MoveVisitor mv;
 
 	KeyButton nokey;
 	std::mutex mutex;
@@ -43,6 +42,10 @@ private:
 	shared_ptr<MenuLeaf> temperature = std::make_shared<MenuLeaf>(string("temperature"));
 	shared_ptr<MenuLeaf> pressure = std::make_shared<MenuLeaf>(string("pressure"));
 
+	DisplayVisitor  dw;
+	MoveVisitor 	mv;
+
+
 	void leave(KeyButton& k) {
 		active_element->exe_leave(dw,k);
 	}
@@ -53,7 +56,7 @@ private:
 		active_element->exe_click(dw,k);
 	}
 public:
-    HomerMenu() {
+    HomerMenu(): mv(root) {
 
 		root->add(welcome);
 		root->add(ciao);
@@ -62,17 +65,12 @@ public:
 		system->add(network);
 		system->add(cpu);
 		system->add(sensors);
-
 		root->add(system);
 		root->add(dany);
 
-    	active_element = root->get_active_element();
-
-    	root->home();
-    	mv.init(*root.get());
+		active_element = root->home();
 
 		timedHome.setCallback([&] () {
-			cout << "Timed Home" << endl;
 			leave(nokey);
 			mutex.lock();
 			active_element = mv.home();
@@ -80,13 +78,11 @@ public:
 			enter(nokey);
 		});
 	}
-	virtual ~HomerMenu() {
-		cout << "HM ended" << endl;
-	}
-	void start(KeyPanel& key_panel, Scheduler& sch) {
+	virtual ~HomerMenu() {}
+
+	void start(KeyPanel& key_panel, Scheduler& sch)  {
 		key_panel.key_attach([&] ( KeyButton& k ) {
 				 sch.ScheduleCancel(timedHome);
-				 cout << "H" << k.get_key() << endl;
 				 if(k.get_key() == BUTTON_ENTER) {
 					 click(k);
 				 } else {
