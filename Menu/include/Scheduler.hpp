@@ -181,6 +181,7 @@ class Task {
      */
     void go() const {
         if(callback && !cancelled) {
+        	// TODO: Valgrind complains leaks on detached threads change to joinable
             std::thread( callback ).detach();
         }
     }
@@ -405,10 +406,20 @@ class Scheduler {
                     running_tasks.erase(*cur);
                 }
                 // waiting for the next event
-                if (waiting_tasks.empty())
+                if (waiting_tasks.empty()) {
                     blocker.wait(lock);
-                else
-                    blocker.wait_until(lock, (*cur).getTime());
+                } else {
+/*
+ * 	Bad: Valgrind complains "invalid read of size 8"
+ * 	http://stackoverflow.com/questions/9891767/valgrind-debug-log-invalid-read-of-size-8
+ *
+                	blocker.wait_until(lock, (*cur).getTime());
+  *
+ */
+                	auto nxt = waiting_tasks.begin();
+                	auto nxttime = (*nxt).getTime();
+                    blocker.wait_until(lock, nxttime);
+                }
             }
         }
     }
