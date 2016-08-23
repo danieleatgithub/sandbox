@@ -16,13 +16,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <unistd.h>
 #include <linux/input.h>
 #include <linux/uinput.h>
 #include <dirent.h>
-
-
+#include <string>
+#include <fcntl.h>
 #include <thread>
-
+#include <iostream>
+#include <GL/freeglut.h>
 
 #define SYS_PATH "/sys/class/input/"
 #define EVT_PATH "/dev/input/"
@@ -89,27 +91,33 @@ Event: time 1470769545.002499, -------------- SYN_REPORT ------------
 	KeyPanel 	key_panel;
 
 	key_emulator.start(); // Start keyboard Emulator
-	key_panel.set_event_filename(key_emulator.get_event().c_str());
+	key_panel.set_event_filename(key_emulator.getEvent().c_str());
 	key_panel.start();  // Start keyPanel
 	homerMenu.start(key_panel,sch); // Start Menu
 
-	cout << "READY" << endl;
-	sleep(120);
-	key_emulator.stop();
+	key_emulator.join();
 *
+* Mapped key:
+* UP=8,DOWN=2,LEFT=4,RIGHT=6,ENTER=0
+* Emulator special key
+* '-' = Enable disable auto button release event
+* '+' = If auto release is disabled send release event (For long press emulation)
+* 'q' = quit the thread
 *
 *
 */
+
+using namespace std;
 
 class KeyEmulator {
 
 private:
 	// uinput device
 	struct uinput_user_dev uidev;
-	struct input_event     ev;
 	struct termios t;
 	char sysfs_device_name[16];
     int                    fd; // fd of the uinput device
+    struct input_event     evt;
 
     std::thread key_thread;
     bool running;
@@ -123,20 +131,20 @@ private:
 	 */
     void stdin_unbuffered()
     {
-    	tcgetattr(STDIN_FILENO, &t); //get the current terminal I/O structure
-    	t.c_lflag &= ~ICANON; //Manipulate the flag bits to do what you want it to do
-    	t.c_lflag &= ~ECHO; //Manipulate the flag bits to do what you want it to do
-    	tcsetattr(STDIN_FILENO, 0, &t); //Apply the new settings
+    	tcgetattr(STDIN_FILENO, &t);
+    	t.c_lflag &= ~ICANON;
+    	t.c_lflag &= ~ECHO;
+    	tcsetattr(STDIN_FILENO, 0, &t);
     }
     /**
      * Restore normal stdin
      */
     void stdin_buffered()
     {
-    	tcgetattr(STDIN_FILENO, &t); //get the current terminal I/O structure
-    	t.c_lflag |= ICANON; //Manipulate the flag bits to do what you want it to do
-       	t.c_lflag |= ECHO; //Manipulate the flag bits to do what you want it to do
-    	tcsetattr(STDIN_FILENO, 0, &t); //Apply the new settings
+    	tcgetattr(STDIN_FILENO, &t);
+    	t.c_lflag |= ICANON;
+       	t.c_lflag |= ECHO;
+    	tcsetattr(STDIN_FILENO, 0, &t);
     }
 	/**
 	 *  Open and initialize uinput driver
@@ -205,18 +213,18 @@ private:
      * @param event_us_pause ( deafult = 100 microseconds)
      */
     void k_write(__u16 type,__u16 code, __s32 value, unsigned int event_us_pause = 100) {
-        memset(&ev, 0, sizeof(struct input_event));
-        ev.type = type;
-        ev.code = code;
-        ev.value = value;
-        if(write(fd, &ev, sizeof(struct input_event)) < 0)
+       memset(&evt, 0, sizeof(struct input_event));
+       evt.type = type;
+       evt.code = code;
+       evt.value = value;
+       if(write(fd, &evt, sizeof(struct input_event)) < 0)
         	KEY_EMULATOR_DIE("error: write");
-        usleep(event_us_pause);
-        memset(&ev, 0, sizeof(struct input_event));
-        ev.type = EV_SYN;
-        if(write(fd, &ev, sizeof(struct input_event)) < 0)
+       usleep(event_us_pause);
+       memset(&evt, 0, sizeof(struct input_event));
+       evt.type = EV_SYN;
+       if(write(fd, &evt, sizeof(struct input_event)) < 0)
         	KEY_EMULATOR_DIE("error: write EV_SYN");
-        usleep(event_us_pause);
+       usleep(event_us_pause);
     }
 
     /**
@@ -229,7 +237,7 @@ private:
      * 'q' = quit the thread
      *
      */
-    void key_thread_emulator() {
+    __attribute__((deprecated)) void key_thread_emulator() {
         struct timeval tv;
         fd_set fds;
     	char ch;
@@ -312,17 +320,76 @@ public:
     	init(name, type, vendor, product, version, key_us_auto_release);
     }
     ~KeyEmulator() {
-    	if(running) stop();
+//    	if(running) stop();
     	if(ioctl(fd, UI_DEV_DESTROY) < 0) KEY_EMULATOR_DIE("error: ioctl in ~KeyEmulator");
    	    close(fd);
     }
-    /**
-     * Start emulator
+    void gl_key_event(unsigned char key, int x, int y,__s32 value) {
+    	cerr << "gl_key_event k=" << key << "value=" << value << endl;
+    	__u16 current_key = KEY_ESC;;
+ 	   switch (key) {
+		case '2':
+			current_key = KEY_DOWN;
+			break;
+		case '8':
+			current_key = KEY_UP;
+			break;
+		case '6':
+			current_key = KEY_RIGHT;
+			break;
+		case '4':
+			current_key = KEY_LEFT;
+			break;
+		case '0':
+			current_key = KEY_ENTER;
+			break;
+		case 'q':
+			glutLeaveMainLoop();
+			break;
+		default:
+	    	cerr << __PRETTY_FUNCTION__ << " Unmanaged key:" << key << endl;
+			current_key = KEY_ESC;
+ 	   }
+		// Write key events on the device
+		if(current_key != KEY_ESC) {
+			k_write(EV_KEY,current_key,value);
+		}
+
+    }
+
+    void gl_key_press(unsigned char key, int x, int y) {
+    	gl_key_event(key,x,y,1);
+    }
+
+    void gl_key_release(unsigned char key, int x, int y) {
+    	gl_key_event(key,x,y,0);
+    }
+
+    int gl_start(unsigned int max_sync_ms = 10000) {
+		int fd;
+		int ret = -1;
+
+		for(int i= 0; i< 100; i++) {
+			  if((fd = open(getEvent().c_str(), O_RDONLY)) > 0) {
+				  close(fd);
+				  ret = 0;
+				  break;
+			  }
+			  usleep(max_sync_ms); // 1ms
+		}
+		// fails if event not available in 1 second
+		return(ret);
+
+    }
+   /**
+     * Start text based emulator (Deprecated)
      *
      * @param max_sync_ms milliseconds to wait the device availability (default = 1000)
      * @return positive on success
      */
-	int start(unsigned int max_sync_ms = 1000) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	__attribute__((deprecated)) int start(unsigned int max_sync_ms = 1000) {
 		int fd;
 		int ret = -1;
         stdin_unbuffered();
@@ -338,19 +405,20 @@ public:
 		// fails if event not available in 1 second
 		return(ret);
 	}
+#pragma GCC diagnostic pop
 	/**
 	 * Stop emulator
 	 */
-	void stop() {
+	__attribute__((deprecated)) void stop() {
 		this->running = false;
 		this->key_thread.join();
 		stdin_buffered();
 	}
-	void join() {
+	__attribute__((deprecated)) void join() {
 		this->key_thread.join();
 		stdin_buffered();
 	}
-	bool isRunning() const { return(running); }
+	__attribute__((deprecated)) bool isRunning() const { return(running); }
 
 	const string& getEvent() const {
 		return(event);
@@ -360,13 +428,17 @@ public:
 		return(input);
 	}
 
-	unsigned int getKeyUsAutoRelease() const {
+	__attribute__((deprecated)) unsigned int  getKeyUsAutoRelease() const {
 		return key_us_auto_release;
 	}
 
-	void setKeyUsAutoRelease(unsigned int keyUsAutoRelease) {
+	__attribute__((deprecated)) void setKeyUsAutoRelease(unsigned int keyUsAutoRelease) {
 		key_us_auto_release = keyUsAutoRelease;
 	}
+
+
+
+
 };
 
 

@@ -127,11 +127,12 @@ class KeyPanel {
     	this->running = true;
     	struct input_event ev;
         int size = sizeof(ev);
-
+        int nread = 0;
     	while(running) {
     			// blocking event reader
-    	    	read(this->fd, &ev, size);
-       	    	if(!running) break;
+    			nread = read(this->fd, &ev, size);
+    	    	cerr << "read "<< nread;
+      	    	if(!running) break;
        	    	LOG4CPLUS_DEBUG(logdev, "code=" << ev.code <<
     	    							"type=" <<  ev.type <<
     									"value="<< ev.value <<

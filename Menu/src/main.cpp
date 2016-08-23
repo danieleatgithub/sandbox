@@ -20,18 +20,23 @@
 #include <log4cplus/loglevel.h>
 #include <log4cplus/tchar.h>
 #include <DisplayVisitor.hpp>
+#include <HomerEmulator.hpp>
 #include <MoveVisitor.hpp>
 #include <HomerMenu.hpp>
+#include <HwLayer.hpp>
+#include <HwEmulated.hpp>
+#include <Winstar.h>
 
 using namespace std;
 using namespace homerio;
 using namespace shd;
 using namespace log4cplus;
+using namespace homeremulator;
 
 struct termios t;
 
 
-int main() {
+int main(int argc, char** argv) {
 	string name;
 
 	// Poperties load and init
@@ -40,20 +45,33 @@ int main() {
     config.configure();
 
 	Logger logger = Logger::getRoot();
+	GpioPortEmulated    reset(LCD_RESET_PIN);
+	GpioPortEmulated    light(LCD_BACKLIGHT_PIN);
+	I2cBusEmulated 		i2c_0(I2C_BUS);
 
+	HomerEmulator emu(argc,argv,i2c_0,reset,light);
 
 	Scheduler 	sch;
 	HomerMenu 	homerMenu;
-	KeyEmulator key_emulator;
 	KeyPanel 	key_panel;
+//	Winstar		display(i2c_0,reset,light);
 
-	key_emulator.start(); // Start keyboard Emulator
-	key_panel.set_event_filename(key_emulator.getEvent().c_str());
+
+	emu.start(); // Start Homer Emulator
+	key_panel.set_event_filename(emu.getKeyEmulator().getEvent().c_str());
 	key_panel.start();  // Start keyPanel
 	homerMenu.start(key_panel,sch); // Start Menu
 
-	key_emulator.join();
+//    display.dpy_open();
+//    display.key_attach(key_panel,sch);
+//    display.set_backlight(true);
+//
+//
+//
+//
+	emu.mainLoop();
 
+	sleep(1);
 
 	return 0;
 }
