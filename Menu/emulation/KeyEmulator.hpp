@@ -325,7 +325,6 @@ public:
    	    close(fd);
     }
     void gl_key_event(unsigned char key, int x, int y,__s32 value) {
-    	cerr << "gl_key_event k=" << key << "value=" << value << endl;
     	__u16 current_key = KEY_ESC;;
  	   switch (key) {
 		case '2':

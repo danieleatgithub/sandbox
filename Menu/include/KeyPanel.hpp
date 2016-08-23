@@ -131,7 +131,10 @@ class KeyPanel {
     	while(running) {
     			// blocking event reader
     			nread = read(this->fd, &ev, size);
-    	    	cerr << "read "<< nread;
+    			if(nread != size) {
+           	    	LOG4CPLUS_WARN(logdev, "read size error (r=" << nread << "e="<< size <<")");
+           	    	if(running) continue;
+    			}
       	    	if(!running) break;
        	    	LOG4CPLUS_DEBUG(logdev, "code=" << ev.code <<
     	    							"type=" <<  ev.type <<
@@ -146,11 +149,17 @@ class KeyPanel {
 				case EV_SYN:
 					this->key.validate_event(ev);
 					key_counter++;
-					if(this->key.isPressEvent())  key_press_obs(this->key);
-					else 						  key_release_obs(this->key);
-					if(this->key.isLongEvent())   key_long_obs(this->key);
-					break;
+					if(this->key.isPressEvent())  {
+						key_press_obs(this->key);
+					} else {
+						key_release_obs(this->key);
 					}
+
+					if(this->key.isLongEvent())  {
+						key_long_obs(this->key);
+					}
+					break;
+				}
 
     	}
     	LOG4CPLUS_DEBUG(logdev, "KeyPanel thread exit\n");

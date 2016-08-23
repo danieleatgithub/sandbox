@@ -65,10 +65,8 @@ int main(int argc, char** argv) {
 //    display.dpy_open();
 //    display.key_attach(key_panel,sch);
 //    display.set_backlight(true);
-//
-//
-//
-//
+
+
 	emu.mainLoop();
 
 	sleep(1);
