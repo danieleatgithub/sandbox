@@ -109,10 +109,13 @@ class KeyPanel {
     obs::Subject<void (KeyButton& k )> key_press_obs;	// Triggered on key press
     obs::Subject<void (KeyButton& k )> key_release_obs; // Triggered on key released
     obs::Subject<void (KeyButton& k )> key_long_obs;	// Triggered on long time duration
+
     // Observer Registration
-    Registration reg_press_obs;
-    Registration reg_release_obs;
-    Registration reg_long_obs;
+    // Registered observer will be destroyed from the observer when KeyPanel goes out
+    // of the scope
+    vector<Registration> reg_press_obs;
+    vector<Registration> reg_release_obs;
+    vector<Registration> reg_long_obs;
 
     struct timeval tout;
     string event_dev;
@@ -132,7 +135,7 @@ class KeyPanel {
     			// blocking event reader
     			nread = read(this->fd, &ev, size);
     			if(nread != size) {
-           	    	LOG4CPLUS_WARN(logdev, "read size error (r=" << nread << "e="<< size <<")");
+           	    	LOG4CPLUS_WARN(logdev, "read size error (s=" << (running?"true":"false") << " r=" << nread << "e="<< size <<")");
            	    	if(running) continue;
     			}
       	    	if(!running) break;
@@ -182,61 +185,57 @@ class KeyPanel {
     	this->key_counter = 0;
     }
     ~KeyPanel() {
+    	cerr << __PRETTY_FUNCTION__ << endl;
     	stop();
     }
     void key_attach(std::function<void (KeyButton& k)> f) {
-    	reg_release_obs = key_release_obs.registerObserver(f);
+    	key_release_attach(f);
     }
     void key_release_attach(std::function<void (KeyButton& k)> f) {
-    	reg_release_obs = key_release_obs.registerObserver(f);
+    	Registration reg = key_release_obs.registerObserver(f);
+    	reg_release_obs.push_back(reg);
     }
     void key_press_attach(std::function<void (KeyButton& k)> f) {
-    	reg_press_obs = key_press_obs.registerObserver(f);
+    	Registration reg = key_press_obs.registerObserver(f);
+    	reg_press_obs.push_back(reg);
     }
     void key_long_attach(std::function<void (KeyButton& k)> f) {
-    	reg_long_obs = key_long_obs.registerObserver(f);
+    	Registration reg = key_long_obs.registerObserver(f);
+    	reg_long_obs.push_back(reg);
     }
 
 
     int start() {
     	Logger logdev = Logger::getInstance(LOGDEVICE);
 
-    	if(running) {
-    		LOG4CPLUS_ERROR(logdev, "KeyPanel thread already active\n");
+    	if(running || event_dev.empty() ) {
+    		LOG4CPLUS_ERROR(logdev, (running?"Already running":"") << (event_dev.empty() ? "No event device" :"") << endl);
     		return(-1);
     	}
-    	if(this->event_dev.empty()) {
-    		LOG4CPLUS_ERROR(logdev, "event device not set\n");
-    		return(-1);
-    	}
-    	fd = open(this->event_dev.c_str(), O_RDONLY);
-    	if(fd < 0) {
-    		LOG4CPLUS_ERROR(logdev, (string("unable to open ")+ this->event_dev+string(strerror(errno))).c_str());
+
+    	if((fd = open(this->event_dev.c_str(), O_RDONLY)) < 0) {
+    		LOG4CPLUS_ERROR(logdev,  __PRETTY_FUNCTION__ << (string("unable to open ")+ this->event_dev+string(strerror(errno))).c_str());
     		throw std::runtime_error((string("unable to open ")+ this->event_dev+string(strerror(errno))).c_str());
     	}
     	this->key_thread = std::thread([&] { KeyPanel::key_thread_reader(); });
-    	LOG4CPLUS_DEBUG(logdev, "key reader started\n");
+    	LOG4CPLUS_DEBUG(logdev, "key reader started");
     	return(0);
     }
     int stop() {
     	Logger logdev = Logger::getInstance(LOGDEVICE);
-    	if(!running) {
-    		LOG4CPLUS_WARN(logdev, "KeyPanel thread not active\n");
-    		return(1);
+    	if(running) {
+			running = false;
+			// Native pthread_cancel due blocking read that consume less cpu then timed select
+			pthread_cancel(key_thread.native_handle());
+			key_thread.join();
+			close(fd);
+			fd = -1;
     	}
-
-    	this->running = false;
-    	// Need native cancel due blocking read that consume less cpu then timed select
-    	pthread_cancel(this->key_thread.native_handle());
-    	this->key_thread.join();
-       	close(this->fd);
-    	this->fd = -1;
+    	LOG4CPLUS_DEBUG(logdev, "key reader stopped");
     	return(0);
     }
 
-
     unsigned int get_key_counter() { return(key_counter); }
-
 
     void set_event_filename(const char *dev) {
     	this->event_dev = dev;

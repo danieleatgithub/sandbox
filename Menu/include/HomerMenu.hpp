@@ -13,9 +13,6 @@
 
 namespace homerio {
 
-
-
-
 /**
  * Homer Menu
  *
@@ -24,9 +21,9 @@ class HomerMenu {
 private:
 
     Task timedHome;
-
     shared_ptr<MenuComponent> active_element;
-
+    KeyPanel &keyPanel;
+    Scheduler& scheduler;
 
 	KeyButton nokey;
 	std::mutex mutex;
@@ -56,7 +53,7 @@ private:
 		active_element->exe_click(dw,k);
 	}
 public:
-    HomerMenu(): mv(root) {
+    HomerMenu(KeyPanel& kpl, Scheduler& sch):  keyPanel(kpl), scheduler(sch), mv(root){
 
 		root->add(welcome);
 		root->add(ciao);
@@ -77,12 +74,9 @@ public:
 			mutex.unlock();
 			enter(nokey);
 		});
-	}
-	virtual ~HomerMenu() {}
 
-	void start(KeyPanel& key_panel, Scheduler& sch)  {
-		key_panel.key_attach([&] ( KeyButton& k ) {
-				 sch.ScheduleCancel(timedHome);
+		keyPanel.key_attach([&] ( KeyButton& k ) {
+				scheduler.ScheduleCancel(timedHome);
 				 if(k.get_key() == BUTTON_ENTER) {
 					 click(k);
 				 } else {
@@ -92,9 +86,11 @@ public:
 					 mutex.unlock();
 					 enter(k);
 				 }
-			 sch.ScheduleAfter(std::chrono::seconds(30),timedHome);
+				 scheduler.ScheduleAfter(std::chrono::seconds(30),timedHome);
 		});
+
 	}
+	virtual ~HomerMenu() {}
 
 };
 

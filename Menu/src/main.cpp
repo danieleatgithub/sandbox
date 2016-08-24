@@ -45,29 +45,33 @@ int main(int argc, char** argv) {
     config.configure();
 
 	Logger logger = Logger::getRoot();
+
+	// Create fake universe
 	GpioPortEmulated    reset(LCD_RESET_PIN);
 	GpioPortEmulated    light(LCD_BACKLIGHT_PIN);
 	I2cBusEmulated 		i2c_0(I2C_BUS);
 
+	// Create real people on fake universe
+	Scheduler 	scheduler;
+	KeyPanel 	keyPanel;
+	HomerMenu 	homerMenu(keyPanel,scheduler);
+	Winstar		display(keyPanel,scheduler,i2c_0,reset,light);
+
+	// Create Big Brother
 	HomerEmulator emu(argc,argv,i2c_0,reset,light);
 
-	Scheduler 	sch;
-	HomerMenu 	homerMenu;
-	KeyPanel 	key_panel;
-//	Winstar		display(i2c_0,reset,light);
+	// Let's play this Truman Show
+	emu.start(); 		// Start Homer Emulator
+	keyPanel.set_event_filename(emu.getKeyEmulator().getEvent().c_str());
+	keyPanel.start();  // Start keyPanel
+    display.dpy_open();
+    display.set_backlight(true);
 
+    emu.mainLoop();
 
-	emu.start(); // Start Homer Emulator
-	key_panel.set_event_filename(emu.getKeyEmulator().getEvent().c_str());
-	key_panel.start();  // Start keyPanel
-	homerMenu.start(key_panel,sch); // Start Menu
+    display.dpy_close();
+    keyPanel.stop();
 
-//    display.dpy_open();
-//    display.key_attach(key_panel,sch);
-//    display.set_backlight(true);
-
-
-	emu.mainLoop();
 
 	sleep(1);
 

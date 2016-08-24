@@ -23,6 +23,8 @@ class Display {
     unsigned int key_light_delay;
     unsigned int light_remain_ms;
     Task timedLightOff;
+    KeyPanel& keyPanel;
+    Scheduler& scheduler;
 
   protected:
     int fd;
@@ -43,9 +45,7 @@ class Display {
 
   public:
 
-    Display(const char *bus);
-    Display(const char *bus, const char *rst, const char *backlight);
-    Display(I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight);
+    Display(KeyPanel &key_panel, Scheduler &scheduler,I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight);
 
     virtual ~Display();
     virtual int dpy_open();
@@ -53,7 +53,6 @@ class Display {
     int dpy_putchar(unsigned char ch);
     int dpy_puts(const char *str);
     int reset();
-    void key_attach(KeyPanel &key_panel, Scheduler &calendar);
 
     virtual int set_state(bool state) {
         return (0);

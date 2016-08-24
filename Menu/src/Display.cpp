@@ -29,7 +29,7 @@ namespace homerio {
 struct pinmap_s;
 
 
-Display::Display(I2cBus& bus, GpioPort& rst, GpioPort& backlight) : i2cBus(bus){
+Display::Display(KeyPanel &kpnl, Scheduler &shd,I2cBus& bus, GpioPort& rst, GpioPort& backlight) : keyPanel(kpnl), scheduler(shd), i2cBus(bus) {
     init();
     this->bus = string(i2cBus.getBus());
     this->rst = string(rst.getName());
@@ -47,10 +47,21 @@ Display::Display(I2cBus& bus, GpioPort& rst, GpioPort& backlight) : i2cBus(bus){
     backlight_pin->pin_export();
     backlight_pin->set_direction(homerio::OUT);
     backlight_pin->pin_open();
+	scheduler.ScheduleAfter(std::chrono::seconds(10),timedLightOff);
+	keyPanel.key_attach([&] ( KeyButton& k ) {
+		cerr << __PRETTY_FUNCTION__ << endl;
+		 if(k.isPressEvent()) {
+			 scheduler.ScheduleCancel(timedLightOff);
+			 set_backlight(true);
+		 } else {
+			 scheduler.ScheduleAfter(std::chrono::seconds(10),timedLightOff);
+		 }
+	});
 }
 
 
 Display::~Display() {
+	cerr << __PRETTY_FUNCTION__ << endl;
     dpy_close();
     reset_pin->pin_close();
     backlight_pin->pin_close();
@@ -73,7 +84,7 @@ int Display::dpy_open() {
     fd = i2cBus.open(bus.c_str(), O_RDWR);
     if (fd < 0) return (fd);
     if (i2cBus.ioctl(fd, I2C_SLAVE, this->address) < 0) {
-    	LOG4CPLUS_ERROR(logdev, "ioctl error: " << strerror(errno) << "\n");
+    	LOG4CPLUS_ERROR(logdev, __PRETTY_FUNCTION__ << "ioctl error: " << strerror(errno) << "\n");
     	i2cBus.close(fd);
         return -1;
     }
@@ -94,21 +105,6 @@ int Display::reset() {
 int Display::set_backlight(bool state) {
     return (backlight_pin->setState((state ? STATE_ON : STATE_OFF)));
 }
-
-
-void Display::key_attach(KeyPanel &key_panel, Scheduler& sch) {
-	 sch.ScheduleAfter(std::chrono::seconds(10),timedLightOff);
-	 cerr << "xxxxxxxxxxx" << endl;
-	 key_panel.key_attach([&] ( KeyButton& k ) {
-		 if(k.isPressEvent()) {
-			 sch.ScheduleCancel(timedLightOff);
-			 set_backlight(true);
-		 } else {
-			 sch.ScheduleAfter(std::chrono::seconds(10),timedLightOff);
-		 }
-	});
-}
-
 
 int Display::dpy_putchar(unsigned char ch) {
     return (this->write_data(ch));

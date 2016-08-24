@@ -49,6 +49,7 @@ GpioPin::GpioPin(GpioPort& port) : gpioPort(port){
     this->kstr = pin_desc->kernel_string;
     this->kid = pin_desc->kernel_id;
     this->name = pin_desc->name;
+    this->in_use = false;
 }
 
 
@@ -74,12 +75,12 @@ int GpioPin::pin_export() {
     if (kid < 0)
         return (-1);
     if (this->in_use) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " already in use");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ << "Pin " << name << " already in use");
         return -2;
     }
     fd = gpioPort.open(SYSFS_GPIO_DIR "/export", O_WRONLY);
     if (fd < 0) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " fail open for export");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " fail open for export");
         return fd;
     }
     len = snprintf(buf, sizeof(buf), "%d", this->kid);
@@ -97,7 +98,7 @@ int GpioPin::pin_unexport() {
     if (kid < 0)
         return (-1);
     if (!this->in_use) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " not in use");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " not in use");
         return -100;
     }
     if (this->fd > 0) {
@@ -105,7 +106,7 @@ int GpioPin::pin_unexport() {
     }
     fd = gpioPort.open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
     if (fd < 0) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " fail open for unexport");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " fail open for unexport");
         return fd;
     }
 
@@ -124,23 +125,23 @@ int GpioPin::set_direction(Direction_e dir) {
     if (kid < 0)
         return (-1);
     if (!this->in_use) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " not in use");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " not in use");
         return -100;
     }
 
     snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/%s/direction",
              this->kstr.c_str());
 
-    fd = open(buf, O_WRONLY);
+    fd = gpioPort.open(buf, O_WRONLY);
     if (fd < 0) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " fail open for direction");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " fail open for direction");
         return fd;
     }
 
     LOG4CPLUS_DEBUG(logdev,"echo " << buf << " " << Direction_s[dir]);
     ret = gpioPort.write(fd, Direction_s[dir], (strlen(Direction_s[dir]) + 1));
 
-    close(fd);
+    gpioPort.close(fd);
     if (ret < 0) {
         return (ret);
     }
@@ -157,7 +158,7 @@ int GpioPin::set_edge(Edge_e edge) {
     if (kid < 0)
         return (-1);
     if (!this->in_use) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " not in use");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " not in use");
         return -100;
     }
 
@@ -165,7 +166,7 @@ int GpioPin::set_edge(Edge_e edge) {
 
     fd = gpioPort.open(buf, O_WRONLY);
     if (fd < 0) {
-        LOG4CPLUS_ERROR(logdev,"Pin " << name << " fail open for set-edge");
+        LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " fail open for set-edge");
         return fd;
     }
     LOG4CPLUS_DEBUG(logdev,"echo " << SYSFS_GPIO_DIR << "/"
@@ -216,7 +217,7 @@ int GpioPin::write_value(bool value) {
     if (kid < 0)
         return (-1);
     if (!this->in_use || this->direction != OUT) {
-    	LOG4CPLUS_ERROR(logdev,"Pin " << name << " not in use");
+    	LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " not in use");
         return -100;
     }
     if (this->fd <= 0) {
@@ -225,7 +226,7 @@ int GpioPin::write_value(bool value) {
 
         fd = gpioPort.open(buf, O_WRONLY);
         if (fd < 0) {
-        	LOG4CPLUS_ERROR(logdev,"Pin " << name << " fail open for set value");
+        	LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " fail open for set value");
             return fd;
         }
         gpioPort.write(fd, val, 2);
@@ -253,7 +254,7 @@ int GpioPin::get(bool *value) {
 
     fd = gpioPort.open(buf, O_RDONLY);
     if (fd < 0) {
-    	LOG4CPLUS_ERROR(logdev,"Pin " << name << " fail open for get value");
+    	LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " fail open for get value");
         return fd;
     }
 
@@ -281,7 +282,7 @@ int GpioPin::pin_open() {
     else
         this->fd = gpioPort.open(buf, O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
-    	LOG4CPLUS_ERROR(logdev,"Pin " << name << " fail pin open ");
+    	LOG4CPLUS_ERROR(logdev,__PRETTY_FUNCTION__ <<"Pin " << name << " fail pin open ");
     }
     return this->fd;
 }

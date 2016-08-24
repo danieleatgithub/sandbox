@@ -30,7 +30,7 @@ int I2cBusEmulated::read(int fd, void *buf, size_t nbyte) {
 	return(0);
 }
 int I2cBusEmulated::write(int fd, const void *buffer, size_t size) {
-	return(0);
+	return(size);
 }
 int I2cBusEmulated::ioctl(int fd, unsigned long int request, ...) {
 //	va_list argptr;
@@ -65,7 +65,7 @@ int GpioPortEmulated::read(int fd, void *buf, size_t nbyte) {
 int GpioPortEmulated::write(int fd, const void *buffer, size_t size) {
 //	cerr << "GpioPort write " << fd << "," << hex << buffer << "," << size << endl;
 //	write_obs(fd, buffer, size);
-	return(0);
+	return(size);
 }
 int GpioPortEmulated::ioctl(int fd, unsigned long int request, ...) {
 //	int ret = 0;

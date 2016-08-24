@@ -37,12 +37,13 @@ void Winstar::init() {
 
 }
 
-Winstar::Winstar(I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight) :
-    Display(i2cBus, rst, backlight) {
+Winstar::Winstar(KeyPanel &kpnl, Scheduler &shd,I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight) :
+    Display(kpnl,shd,i2cBus, rst, backlight) {
     init();
 }
 
 Winstar::~Winstar() {
+	cerr << __PRETTY_FUNCTION__ << endl;
 }
 
 int Winstar::clear() {
@@ -196,7 +197,8 @@ int Winstar::dpy_write(int type, uint8_t data) {
     buffer[0] = (unsigned char) type;
     buffer[1] = data;
     Logger logdev = Logger::getInstance(LOGDEVICE);
-    LOG4CPLUS_DEBUG(logdev,"Winstar i2cset -y 0 0x " << std::hex << address << " 0x" <<  std::hex << type << " 0x" << std::hex << data);
+    LOG4CPLUS_DEBUG(logdev,"Winstar i2cset -y 0 0x" << hex << (unsigned int)address <<
+    				 " 0x" <<  hex << type << " 0x" << hex << (unsigned int)data);
 
     // FIXME: wait ready from device (blocking and no blocking)
     if (i2cBus.write(fd, buffer, 2) != 2) {

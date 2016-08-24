@@ -89,9 +89,7 @@ class Winstar: public Display {
     void init();
 
   public:
-    Winstar(const char *bus);
-    Winstar(const char *bus, const char *rst, const char *backlight);
-    Winstar(I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight);
+    Winstar(KeyPanel &key_panel, Scheduler& scheduler,I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight);
     virtual ~Winstar();
 
     int set_state(bool state);
