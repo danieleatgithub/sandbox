@@ -13,6 +13,10 @@
 #include <stdio.h>
 #include <KeyEmulator.hpp>
 #include <HwEmulated.hpp>
+#include <Scheduler.hpp>
+#include <WinstarEmulator.hpp>
+
+#define HEMUL_REFRESHRATE 250 // milliseconds
 
 using namespace homerio;
 
@@ -24,6 +28,8 @@ struct GL_callbacks {
 	static void  keypress(unsigned char key, int x, int y);
 	static void  keyrelease(unsigned char key, int x, int y);
 	static void  display();
+	static void  timer(int value);
+	static void  idle();
 
 	GL_callbacks () {}
 	static void setHomerEmulator(HomerEmulator* ptr) {
@@ -37,23 +43,44 @@ class HomerEmulator {
 private:
 	int gl_argc;
 	char **gl_argv;
-	KeyEmulator key_emulator;
-	I2cBusEmulated&    i2cbus;
-	GpioPortEmulated&  port_reset;
-	GpioPortEmulated&  port_light;
 
+	// Emulated stuff
+	Scheduler&			scheduler;
+	KeyPanel&			keyPanel;
+	BoardEmulated&   	acquaA5;
 
+	KeyEmulator 		key_emulator;
+	WinstarEmulator		display;
+
+	unsigned int		refreshRate;
 	void makeRasterFont(void);
+
 public:
-	HomerEmulator(int gl_argc, char** gl_argv,I2cBusEmulated& i2c_0,GpioPortEmulated& reset,GpioPortEmulated& light);
-	virtual ~HomerEmulator() {};
+
+	HomerEmulator(int gl_argc, char** gl_argv,Scheduler& shd,KeyPanel& kp, BoardEmulated& board);
+	virtual ~HomerEmulator() {
+		refreshRate = HEMUL_REFRESHRATE;
+	};
 	int start();
 
 	KeyEmulator& getKeyEmulator() {
 		return key_emulator;
 	}
+
+	 WinstarEmulator& getDisplay()  {
+		return display;
+	}
+
+
 	void mainLoop();
 
+	unsigned int getRefreshRate() const {
+		return refreshRate;
+	}
+
+	void setRefreshRate(unsigned int refreshRate) {
+		this->refreshRate = refreshRate;
+	}
 };
 
 }

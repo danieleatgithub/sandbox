@@ -17,6 +17,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include "Observer.h"
+#include <homerd.h>
+
+
 using namespace obs;
 
 namespace homerio {
@@ -26,7 +29,7 @@ private:
     // Observers
     Subject<void (int filedes, const void *buffer, size_t size)> write_obs; // Triggered on key released
     // Observer Registration
-    Registration reg_write_obs;
+    vector<Registration> reg_write_obs;
 
 public:
 
@@ -41,7 +44,8 @@ public:
 	int close(int fd);
 
 	void reg_write(std::function<void (int filedes, const void *buffer, size_t size)> f) {
-		reg_write_obs = write_obs.registerObserver(f);
+    	Registration reg = write_obs.registerObserver(f);
+    	reg_write_obs.push_back(reg);
 	}
 
 };
@@ -51,7 +55,7 @@ private:
     // Observers
     Subject<void (int filedes, const void *buffer, size_t size)> write_obs; // Triggered on key released
     // Observer Registration
-    Registration reg_write_obs;
+    vector<Registration> reg_write_obs;
 
 public:
 	 GpioPortEmulated(const char *name) : GpioPort(name) {};
@@ -65,11 +69,39 @@ public:
 		int close(int fd);
 
 		void reg_write(std::function<void (int filedes, const void *buffer, size_t size)> f) {
-			reg_write_obs = write_obs.registerObserver(f);
+	    	Registration reg = write_obs.registerObserver(f);
+	    	reg_write_obs.push_back(reg);
 		}
 
 };
 
-}
 
+
+class BoardEmulated {
+	I2cBusEmulated    i2c_0;
+	GpioPortEmulated  lcd_backlight;
+	GpioPortEmulated  lcd_reset;
+
+public:
+	BoardEmulated() :
+		i2c_0(I2C_BUS), lcd_backlight(LCD_BACKLIGHT_PIN), lcd_reset(LCD_RESET_PIN)  {
+
+	};
+	~BoardEmulated() {
+	}
+	I2cBusEmulated& getI2c0() {
+		return i2c_0;
+	}
+
+	GpioPortEmulated& getLcdBacklight() {
+		return lcd_backlight;
+	}
+
+	GpioPortEmulated& getLcdReset() {
+		return lcd_reset;
+	}
+
+};
+
+}
 #endif /* HWEMULATED_HPP_ */

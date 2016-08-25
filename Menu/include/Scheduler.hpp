@@ -87,10 +87,22 @@ class Task {
      *
      * @param interval
      */
-    void setInterval(const chrono::system_clock::duration& interval) {
+    void setInterval(const chrono::system_clock::duration interval) {
         this->interval = interval;
     }
+    void setInterval(unsigned int interval) {
+    	setInterval(std::chrono::seconds(interval));
+     }
+
+
     /**
+     * is task cancelled
+     * @return
+     */
+    bool isCancelled() const {
+        return cancelled;
+    }
+   /**
     *
     * Default constructor with a disabled task
     *
@@ -141,7 +153,9 @@ class Task {
      * @return
      */
     friend std::ostream& operator<<(std::ostream &strm, const Task &task) {
-        return strm << "ID=" << task.id << ",TIME=" << chrono::system_clock::to_time_t(task.time);
+         return strm << "ID=" << task.id <<
+        		",TIME=" << chrono::system_clock::to_time_t(task.time) <<
+        		",INTERVAL=" << dec << task.getInterval().count();
     }
 
   private:
@@ -160,13 +174,6 @@ class Task {
         this->callback = nullptr;
         this->interval = chrono::seconds(0);;
         this->cancelled = false;
-    }
-    /**
-     * is task cancelled
-     * @return
-     */
-    bool isCancelled() const {
-        return cancelled;
     }
     /**
      * Cancel task
@@ -276,6 +283,7 @@ class Scheduler {
     /**
      * Schedule a task at specific time, if the task is already present in waiting queue
      * the task will be rescheduled at the new time point
+     * primary schedule method
      * FIXME: if is in running queue
      * @param time
      * @param task
@@ -374,6 +382,14 @@ class Scheduler {
         this->ScheduleAt(chrono::system_clock::now() + interval,task);
     }
     /**
+     * Schedule a task
+     * @param task
+     */
+    void ScheduleAfter(Task& task) {
+        task.setCancelled(false);
+        this->ScheduleAt(chrono::system_clock::now() + task.getInterval(),task);
+    }
+    /**
      * Schedule an anonymous task after a specific interval
      * @param interval
      * @param callback
@@ -382,6 +398,17 @@ class Scheduler {
         Task e(callback);
         this->ScheduleAt(chrono::system_clock::now() + interval,e);
     }
+    /**
+     * Restart a task with the same interval
+     * @param task
+     */
+    void ScheduleRestart(Task& task) {
+    	this->ScheduleCancel(task);
+        task.setCancelled(false);
+         this->ScheduleAt(chrono::system_clock::now() + task.getInterval(),task);
+    }
+
+
 
   private:
     std::set<Task> waiting_tasks;

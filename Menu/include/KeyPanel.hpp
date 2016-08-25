@@ -110,13 +110,6 @@ class KeyPanel {
     obs::Subject<void (KeyButton& k )> key_release_obs; // Triggered on key released
     obs::Subject<void (KeyButton& k )> key_long_obs;	// Triggered on long time duration
 
-    // Observer Registration
-    // Registered observer will be destroyed from the observer when KeyPanel goes out
-    // of the scope
-    vector<Registration> reg_press_obs;
-    vector<Registration> reg_release_obs;
-    vector<Registration> reg_long_obs;
-
     struct timeval tout;
     string event_dev;
     bool running;
@@ -139,11 +132,11 @@ class KeyPanel {
            	    	if(running) continue;
     			}
       	    	if(!running) break;
-       	    	LOG4CPLUS_DEBUG(logdev, "code=" << ev.code <<
-    	    							"type=" <<  ev.type <<
-    									"value="<< ev.value <<
-    									"s=" << ev.time.tv_sec <<
-    									"u=" << ev.time.tv_usec);
+       	    	LOG4CPLUS_DEBUG(logdev, "("<< key_counter <<") code=" << ev.code <<
+    	    							" type=" <<  ev.type <<
+    									" value="<< ev.value <<
+    									" s=" << ev.time.tv_sec <<
+    									" u=" << ev.time.tv_usec);
 
     	    	switch(ev.type){
 				case EV_KEY:
@@ -188,20 +181,17 @@ class KeyPanel {
     	cerr << __PRETTY_FUNCTION__ << endl;
     	stop();
     }
-    void key_attach(std::function<void (KeyButton& k)> f) {
-    	key_release_attach(f);
+    void key_attach(Registration& reg, std::function<void (KeyButton& k)> f) {
+    	key_release_attach(reg,f);
     }
-    void key_release_attach(std::function<void (KeyButton& k)> f) {
-    	Registration reg = key_release_obs.registerObserver(f);
-    	reg_release_obs.push_back(reg);
+    void key_release_attach(Registration& reg,std::function<void (KeyButton& k)> f) {
+    	reg = key_release_obs.registerObserver(f);
     }
-    void key_press_attach(std::function<void (KeyButton& k)> f) {
-    	Registration reg = key_press_obs.registerObserver(f);
-    	reg_press_obs.push_back(reg);
+    void key_press_attach(Registration& reg,std::function<void (KeyButton& k)> f) {
+    	reg = key_press_obs.registerObserver(f);
     }
-    void key_long_attach(std::function<void (KeyButton& k)> f) {
-    	Registration reg = key_long_obs.registerObserver(f);
-    	reg_long_obs.push_back(reg);
+    void key_long_attach(Registration& reg,std::function<void (KeyButton& k)> f) {
+    	reg = key_long_obs.registerObserver(f);
     }
 
 

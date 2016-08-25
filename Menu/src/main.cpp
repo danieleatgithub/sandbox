@@ -25,7 +25,7 @@
 #include <HomerMenu.hpp>
 #include <HwLayer.hpp>
 #include <HwEmulated.hpp>
-#include <Winstar.h>
+#include <WinstarEmulator.hpp>
 
 using namespace std;
 using namespace homerio;
@@ -46,24 +46,20 @@ int main(int argc, char** argv) {
 
 	Logger logger = Logger::getRoot();
 
-	// Create fake universe
-	GpioPortEmulated    reset(LCD_RESET_PIN);
-	GpioPortEmulated    light(LCD_BACKLIGHT_PIN);
-	I2cBusEmulated 		i2c_0(I2C_BUS);
-
-	// Create real people on fake universe
-	Scheduler 	scheduler;
-	KeyPanel 	keyPanel;
-	HomerMenu 	homerMenu(keyPanel,scheduler);
-	Winstar		display(keyPanel,scheduler,i2c_0,reset,light);
+	BoardEmulated		acquaA5Emulated;
+	Scheduler			scheduler;
+	KeyPanel			keyPanel;
+	HomerMenu			menu(keyPanel,scheduler);
 
 	// Create Big Brother
-	HomerEmulator emu(argc,argv,i2c_0,reset,light);
+	HomerEmulator emu(argc,argv,scheduler,keyPanel,acquaA5Emulated);
 
-	// Let's play this Truman Show
+	Display& display = emu.getDisplay();
+
 	emu.start(); 		// Start Homer Emulator
 	keyPanel.set_event_filename(emu.getKeyEmulator().getEvent().c_str());
 	keyPanel.start();  // Start keyPanel
+
     display.dpy_open();
     display.set_backlight(true);
 

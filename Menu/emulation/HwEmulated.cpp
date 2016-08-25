@@ -20,6 +20,7 @@
 namespace homerio {
 
 
+
 int I2cBusEmulated::open(const char *file, int flag) {
 	return(100);
 }
@@ -63,8 +64,7 @@ int GpioPortEmulated::read(int fd, void *buf, size_t nbyte) {
 	return(0);
 }
 int GpioPortEmulated::write(int fd, const void *buffer, size_t size) {
-//	cerr << "GpioPort write " << fd << "," << hex << buffer << "," << size << endl;
-//	write_obs(fd, buffer, size);
+	write_obs(fd, buffer, size);
 	return(size);
 }
 int GpioPortEmulated::ioctl(int fd, unsigned long int request, ...) {

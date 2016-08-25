@@ -24,6 +24,7 @@ private:
     shared_ptr<MenuComponent> active_element;
     KeyPanel &keyPanel;
     Scheduler& scheduler;
+    Registration keyPanel_reg;
 
 	KeyButton nokey;
 	std::mutex mutex;
@@ -67,6 +68,7 @@ public:
 
 		active_element = root->home();
 
+		// Timer on no key press reset menu to Home
 		timedHome.setCallback([&] () {
 			leave(nokey);
 			mutex.lock();
@@ -75,7 +77,8 @@ public:
 			enter(nokey);
 		});
 
-		keyPanel.key_attach([&] ( KeyButton& k ) {
+		// Attach key handler
+		keyPanel.key_attach(keyPanel_reg, [&] ( KeyButton& k ) {
 				scheduler.ScheduleCancel(timedHome);
 				 if(k.get_key() == BUTTON_ENTER) {
 					 click(k);
@@ -88,6 +91,8 @@ public:
 				 }
 				 scheduler.ScheduleAfter(std::chrono::seconds(30),timedHome);
 		});
+		// Display welcome immediatly
+		scheduler.ScheduleAfter(std::chrono::milliseconds(100),timedHome);
 
 	}
 	virtual ~HomerMenu() {}

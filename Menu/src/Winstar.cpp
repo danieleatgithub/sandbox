@@ -43,7 +43,6 @@ Winstar::Winstar(KeyPanel &kpnl, Scheduler &shd,I2cBus& i2cBus, GpioPort& rst, G
 }
 
 Winstar::~Winstar() {
-	cerr << __PRETTY_FUNCTION__ << endl;
 }
 
 int Winstar::clear() {

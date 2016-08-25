@@ -47,21 +47,17 @@ Display::Display(KeyPanel &kpnl, Scheduler &shd,I2cBus& bus, GpioPort& rst, Gpio
     backlight_pin->pin_export();
     backlight_pin->set_direction(homerio::OUT);
     backlight_pin->pin_open();
-	scheduler.ScheduleAfter(std::chrono::seconds(10),timedLightOff);
-	keyPanel.key_attach([&] ( KeyButton& k ) {
-		cerr << __PRETTY_FUNCTION__ << endl;
-		 if(k.isPressEvent()) {
-			 scheduler.ScheduleCancel(timedLightOff);
+	scheduler.ScheduleAfter(timedLightOff);
+	keyPanel.key_attach(keyPanel_reg, [&] ( KeyButton& k ) {
+		if(!is_backlight_on()) {
 			 set_backlight(true);
-		 } else {
-			 scheduler.ScheduleAfter(std::chrono::seconds(10),timedLightOff);
-		 }
+		}
+		scheduler.ScheduleRestart(timedLightOff);
 	});
 }
 
 
 Display::~Display() {
-	cerr << __PRETTY_FUNCTION__ << endl;
     dpy_close();
     reset_pin->pin_close();
     backlight_pin->pin_close();
@@ -74,6 +70,7 @@ void Display::init() {
     this->fd = -1;
     this->address = 0xff;
     timedLightOff.setCallback([&] () { this->set_backlight(false);});
+    timedLightOff.setInterval(10);
 
 }
 
@@ -103,7 +100,12 @@ int Display::reset() {
     return (device_init());
 }
 int Display::set_backlight(bool state) {
-    return (backlight_pin->setState((state ? STATE_ON : STATE_OFF)));
+	int ret;
+	ret = backlight_pin->setState(state ? STATE_ON : STATE_OFF);
+	if(ret >= 0) {
+		backlight_state = state;
+	}
+    return (ret);
 }
 
 int Display::dpy_putchar(unsigned char ch) {

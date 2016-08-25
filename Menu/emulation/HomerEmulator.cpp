@@ -17,6 +17,7 @@ using namespace std;
 using namespace homerio;
 
 namespace homeremulator {
+
 GLubyte space[] =
 {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
@@ -68,6 +69,7 @@ GLfloat white[3] = { 1.0, 1.0, 1.0 };
 GLfloat green[3] = { 0.0, 1.0, 0.0 };
 GLfloat black[3] = { 0.0, 0.0, 0.0 };
 GLfloat grey[3] = { 0.5, 0.5, 0.5 };
+GLfloat lightgrey[3] = { 0.9, 0.9, 0.9 };
 
 HomerEmulator* GL_callbacks::homerEmulator = nullptr;
 
@@ -89,25 +91,27 @@ HomerEmulator* GL_callbacks::homerEmulator = nullptr;
 
 	void GL_callbacks::display(void)
 	{
-
 	   glClear(GL_COLOR_BUFFER_BIT);
-	   glColor3fv(grey);
-	   glRects(10.0f,140.0f, 150.0f, 190.0f);
-
-	   glColor3fv(black);
-	   glRasterPos2i(20, 170);
-	   glRasterPos2i(20, 150);
-	   glFlush ();
+ 	   homerEmulator->getDisplay().draw();
+	   glFlush();
+	}
+	void GL_callbacks::idle(void)
+	{
+		glutPostRedisplay();
 	}
 
-
-	HomerEmulator::HomerEmulator(int gl_argc, char** gl_argv,I2cBusEmulated& i2c_0,GpioPortEmulated& reset,GpioPortEmulated& light) : i2cbus(i2c_0),  port_reset(reset), port_light(light) {
+	void GL_callbacks::timer(int value)
+	{
+		glutPostRedisplay();
+		glutTimerFunc(homerEmulator->getRefreshRate(), GL_callbacks::timer, value);
+	}
+	HomerEmulator::HomerEmulator(int gl_argc, char** gl_argv, Scheduler& shd,KeyPanel& kp, BoardEmulated& board) :
+		scheduler(shd), keyPanel(kp), acquaA5(board), key_emulator(), display(keyPanel,scheduler,board) {
 		this->gl_argc = gl_argc;
 		this->gl_argv = gl_argv;
+		this->refreshRate = HEMUL_REFRESHRATE;
 		GL_callbacks::setHomerEmulator(this);
 	}
-
-
 
 	int HomerEmulator::start() {
 		   glutInit(&gl_argc, gl_argv);
@@ -120,15 +124,26 @@ HomerEmulator* GL_callbacks::homerEmulator = nullptr;
 		   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 		   glutReshapeFunc(GL_callbacks::reshape);
 		   key_emulator.gl_start();
-//		   key_emulator.start();
-//		   port_light.reg_write([&] ( int fd, const void *buffer, size_t size ) {
-//			   	   const unsigned char *p = (const unsigned char *)buffer;
-//			   	   cerr << "light " << size << ","<< hex << p[0] << "," << hex << p[1] << endl;
-//			});
+		   display.getLcdBacklight().reg_write([&] ( int fd, const void *buffer, size_t size ) {
+			   	   const unsigned char *p = (const unsigned char *)buffer;
+			   	   printf("p0x%x,0x%x\n",p[0],p[1]);
+			   	   cerr << "light " << size << ","<< hex << p[0] << "," << p[1] << endl;
+			   	   if(p[0] == 0x30) {
+			   		   cerr << "light off" << endl;
+			   		   display.setColor(grey,black);
+			   	   } else {
+			   		   cerr << "light on" << endl;
+			   		   display.setColor(white,black);
+			   	   }
+			   	   glutPostRedisplay();
+
+			});
 		   glutSetKeyRepeat	(GLUT_KEY_REPEAT_OFF );
 		   glutKeyboardFunc(GL_callbacks::keypress);
 		   glutKeyboardUpFunc(GL_callbacks::keyrelease);
 		   glutDisplayFunc(GL_callbacks::display);
+//		   glutIdleFunc(GL_callbacks::idle);
+		   glutTimerFunc(0, GL_callbacks::timer, 0);
 		   return 0;
 	}
 	void HomerEmulator::mainLoop() {

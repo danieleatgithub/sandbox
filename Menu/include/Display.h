@@ -25,6 +25,7 @@ class Display {
     Task timedLightOff;
     KeyPanel& keyPanel;
     Scheduler& scheduler;
+    Registration keyPanel_reg;
 
   protected:
     int fd;
