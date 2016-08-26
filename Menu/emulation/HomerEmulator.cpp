@@ -106,7 +106,7 @@ HomerEmulator* GL_callbacks::homerEmulator = nullptr;
 		glutTimerFunc(homerEmulator->getRefreshRate(), GL_callbacks::timer, value);
 	}
 	HomerEmulator::HomerEmulator(int gl_argc, char** gl_argv, Scheduler& shd,KeyPanel& kp, BoardEmulated& board) :
-		scheduler(shd), keyPanel(kp), acquaA5(board), key_emulator(), display(keyPanel,scheduler,board) {
+		scheduler(shd), keyPanel(kp), acquaA5(board), display(keyPanel,scheduler,board) {
 		this->gl_argc = gl_argc;
 		this->gl_argv = gl_argv;
 		this->refreshRate = HEMUL_REFRESHRATE;
@@ -124,20 +124,6 @@ HomerEmulator* GL_callbacks::homerEmulator = nullptr;
 		   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 		   glutReshapeFunc(GL_callbacks::reshape);
 		   key_emulator.gl_start();
-		   display.getLcdBacklight().reg_write([&] ( int fd, const void *buffer, size_t size ) {
-			   	   const unsigned char *p = (const unsigned char *)buffer;
-			   	   printf("p0x%x,0x%x\n",p[0],p[1]);
-			   	   cerr << "light " << size << ","<< hex << p[0] << "," << p[1] << endl;
-			   	   if(p[0] == 0x30) {
-			   		   cerr << "light off" << endl;
-			   		   display.setColor(grey,black);
-			   	   } else {
-			   		   cerr << "light on" << endl;
-			   		   display.setColor(white,black);
-			   	   }
-			   	   glutPostRedisplay();
-
-			});
 		   glutSetKeyRepeat	(GLUT_KEY_REPEAT_OFF );
 		   glutKeyboardFunc(GL_callbacks::keypress);
 		   glutKeyboardUpFunc(GL_callbacks::keyrelease);

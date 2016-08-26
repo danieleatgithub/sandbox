@@ -49,12 +49,13 @@ int main(int argc, char** argv) {
 	BoardEmulated		acquaA5Emulated;
 	Scheduler			scheduler;
 	KeyPanel			keyPanel;
-	HomerMenu			menu(keyPanel,scheduler);
 
 	// Create Big Brother
 	HomerEmulator emu(argc,argv,scheduler,keyPanel,acquaA5Emulated);
 
 	Display& display = emu.getDisplay();
+
+	HomerMenu			menu(keyPanel,scheduler,display);
 
 	emu.start(); 		// Start Homer Emulator
 	keyPanel.set_event_filename(emu.getKeyEmulator().getEvent().c_str());

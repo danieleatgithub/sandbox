@@ -18,7 +18,7 @@
 #include <errno.h>
 #include "Observer.h"
 #include <homerd.h>
-
+#include <map>
 
 using namespace obs;
 
@@ -26,10 +26,9 @@ namespace homerio {
 
 class I2cBusEmulated : public I2cBus {
 private:
+	map<int,string> filedescriptors;
     // Observers
     Subject<void (int filedes, const void *buffer, size_t size)> write_obs; // Triggered on key released
-    // Observer Registration
-    vector<Registration> reg_write_obs;
 
 public:
 
@@ -43,9 +42,8 @@ public:
 	__off_t lseek (int fd, __off_t __offset, int __whence);
 	int close(int fd);
 
-	void reg_write(std::function<void (int filedes, const void *buffer, size_t size)> f) {
-    	Registration reg = write_obs.registerObserver(f);
-    	reg_write_obs.push_back(reg);
+	void reg_write(Registration& reg, std::function<void (int filedes, const void *buffer, size_t size)> f) {
+    	reg = write_obs.registerObserver(f);
 	}
 
 };
@@ -54,8 +52,7 @@ class GpioPortEmulated : public GpioPort  {
 private:
     // Observers
     Subject<void (int filedes, const void *buffer, size_t size)> write_obs; // Triggered on key released
-    // Observer Registration
-    vector<Registration> reg_write_obs;
+
 
 public:
 	 GpioPortEmulated(const char *name) : GpioPort(name) {};
@@ -68,9 +65,8 @@ public:
 		__off_t lseek (int fd, __off_t __offset, int __whence);
 		int close(int fd);
 
-		void reg_write(std::function<void (int filedes, const void *buffer, size_t size)> f) {
-	    	Registration reg = write_obs.registerObserver(f);
-	    	reg_write_obs.push_back(reg);
+		void reg_write(Registration& reg, std::function<void (int filedes, const void *buffer, size_t size)> f) {
+	    	reg = write_obs.registerObserver(f);
 		}
 
 };

@@ -15,6 +15,8 @@ extern GLfloat green[];
 extern GLfloat black[];
 extern GLfloat grey[];
 extern GLfloat lightgrey[];
+
+extern GLuint  fontOffset;
 }
 
 #endif /* EMUGLOBALS_H_ */

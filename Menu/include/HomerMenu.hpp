@@ -24,7 +24,8 @@ private:
     shared_ptr<MenuComponent> active_element;
     KeyPanel &keyPanel;
     Scheduler& scheduler;
-    Registration keyPanel_reg;
+    Registration rkeyPanel, rWrDisplay;
+
 
 	KeyButton nokey;
 	std::mutex mutex;
@@ -40,9 +41,8 @@ private:
 	shared_ptr<MenuLeaf> temperature = std::make_shared<MenuLeaf>(string("temperature"));
 	shared_ptr<MenuLeaf> pressure = std::make_shared<MenuLeaf>(string("pressure"));
 
-	DisplayVisitor  dw;
 	MoveVisitor 	mv;
-
+	DisplayVisitor  dw;
 
 	void leave(KeyButton& k) {
 		active_element->exe_leave(dw,k);
@@ -53,8 +53,10 @@ private:
 	void click(KeyButton& k) {
 		active_element->exe_click(dw,k);
 	}
+
+
 public:
-    HomerMenu(KeyPanel& kpl, Scheduler& sch):  keyPanel(kpl), scheduler(sch), mv(root){
+    HomerMenu(KeyPanel& kpl, Scheduler& sch, Display& display):  keyPanel(kpl), scheduler(sch), mv(root), dw(display){
 
 		root->add(welcome);
 		root->add(ciao);
@@ -78,7 +80,7 @@ public:
 		});
 
 		// Attach key handler
-		keyPanel.key_attach(keyPanel_reg, [&] ( KeyButton& k ) {
+		keyPanel.key_attach(rkeyPanel, [&] ( KeyButton& k ) {
 				scheduler.ScheduleCancel(timedHome);
 				 if(k.get_key() == BUTTON_ENTER) {
 					 click(k);

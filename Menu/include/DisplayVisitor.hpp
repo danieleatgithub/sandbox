@@ -10,6 +10,7 @@
 
 #include <Menu.hpp>
 #include <MenuVisitors.hpp>
+#include <Display.h>
 
 #define TRACE_TMP do { \
 	cout << __PRETTY_FUNCTION__ << l.get_label() << "" << endl; \
@@ -22,14 +23,16 @@
 namespace homerio {
 
 class DisplayVisitor : public MenuActionVisitor {
+	Display& dp;
 public:
-	DisplayVisitor() {};
+	DisplayVisitor(Display& dply) : dp(dply){ };
 	virtual ~DisplayVisitor() {};
 
 	virtual void enter(MenuLeaf&  l,KeyButton& k) 	{
 		TRACE_TMP;
 	}
 	virtual void leave(MenuLeaf&  l,KeyButton& k) {
+		dp.clear();
 		TRACE_TMP;
 	}
 	virtual void click(MenuLeaf& l,KeyButton& k) {
