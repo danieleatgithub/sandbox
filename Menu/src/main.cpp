@@ -37,7 +37,6 @@ struct termios t;
 
 
 int main(int argc, char** argv) {
-	string name;
 
 	// Poperties load and init
 	initialize();
@@ -46,31 +45,47 @@ int main(int argc, char** argv) {
 
 	Logger logger = Logger::getRoot();
 
-	BoardEmulated		acquaA5Emulated;
-	Scheduler			scheduler;
-	KeyPanel			keyPanel;
+	// Real stuff
+	Scheduler			*scheduler;
+	KeyPanel			*keyPanel;
+	HomerMenu			*menu;
 
-	// Create Big Brother
-	HomerEmulator emu(argc,argv,scheduler,keyPanel,acquaA5Emulated);
-
-	Display& display = emu.getDisplay();
-
-	HomerMenu			menu(keyPanel,scheduler,display);
-
-	emu.start(); 		// Start Homer Emulator
-	keyPanel.set_event_filename(emu.getKeyEmulator().getEvent().c_str());
-	keyPanel.start();  // Start keyPanel
-
-    display.dpy_open();
-    display.set_backlight(true);
-
-    emu.mainLoop();
-
-    display.dpy_close();
-    keyPanel.stop();
+	// Emulated stuff
+	BoardEmulated   	*acquaA5;
+	WinstarEmulator		*display;
+	HomerEmulator       *emulator;
 
 
-	sleep(1);
+	// Real stuff
+	keyPanel  = new KeyPanel();
+	scheduler = new Scheduler();
+	menu 	  = new HomerMenu(*keyPanel,*scheduler);
+
+	// Emulated stuff
+	acquaA5   = new BoardEmulated();
+	display	  = new WinstarEmulator(*keyPanel,*scheduler,*acquaA5);
+	emulator  = new HomerEmulator(display);
+
+	emulator->start();
+	keyPanel->set_event_filename(emulator->getKeyEventFilename().c_str());
+	keyPanel->start();
+    display->dpy_open();
+    display->set_backlight(true);
+
+    emulator->mainLoop();
+
+    display->dpy_close();
+    keyPanel->stop();
+    emulator->stop();
+
+    sleep(1);
+
+    delete(emulator);
+    delete(menu);
+    delete(display);
+    delete(acquaA5);
+    delete(scheduler);
+    delete(keyPanel);
 
 	return 0;
 }

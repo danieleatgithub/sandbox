@@ -26,24 +26,25 @@ int I2cBusEmulated::open(const char *file, int flag) {
 	int  fd;
 	IDGenerator& g = IDGenerator::get_istance();
 	Logger logdev = Logger::getInstance(LOGDEVICE);
-	LOG4CPLUS_TRACE(logdev, "file=" << file << ",flag=" << flag << ",(" << fd << ")" << endl);
+//	LOG4CPLUS_TRACE(logdev, "file=" << file << ",flag=" << flag << ",(" << fd << ")" );
 	fd = g.getId();
 	filedescriptors[fd] = string(file);
 	return(fd);
 }
 int I2cBusEmulated::close(int fd) {
 	Logger logdev = Logger::getInstance(LOGDEVICE);
-	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  << endl);
+	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  );
 	return(0);
 }
 int I2cBusEmulated::read(int fd, void *buf, size_t nbyte) {
 	Logger logdev = Logger::getInstance(LOGDEVICE);
-	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  << endl);
+	LOG4CPLUS_TRACE(logdev, "fd=" << fd << hex << ",buf=0x" << buf << ",nbyte=" << dec << nbyte << " file=" << filedescriptors[fd]  );
 	return(0);
 }
 int I2cBusEmulated::write(int fd, const void *buffer, size_t size) {
 	Logger logdev = Logger::getInstance(LOGDEVICE);
-	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  << endl);
+	LOG4CPLUS_TRACE(logdev, "fd=" << fd << hex << ",buf=0x" << buffer << ",size=" << dec << size << " file=" << filedescriptors[fd]  );
+	write_obs(fd, buffer, size);
 	return(size);
 }
 int I2cBusEmulated::ioctl(int fd, unsigned long int request, ...) {
@@ -60,12 +61,12 @@ int I2cBusEmulated::ioctl(int fd, unsigned long int request, ...) {
 //		return(-1);
 //	}
 	Logger logdev = Logger::getInstance(LOGDEVICE);
-	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  << endl);
+	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  );
 	return(0);
 }
 __off_t I2cBusEmulated::lseek (int fd, __off_t __offset, int __whence) {
 	Logger logdev = Logger::getInstance(LOGDEVICE);
-	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  << endl);
+	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  );
 	return(0);
 }
 

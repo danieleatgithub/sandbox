@@ -11,7 +11,7 @@
 #include <Winstar.h>
 #include <EmuGlobals.h>
 #include <Observer.h>
-
+#include <GL/freeglut.h>
 
 using namespace homeremulator;
 
@@ -20,16 +20,14 @@ namespace homerio {
 class WinstarEmulator: public Winstar {
 	GLfloat *bg,*fg;
 	BoardEmulated& 		board;
-	Registration		light_reg;
+	Registration		light_reg,i2cwr_reg;
 	char line1[18];
 	char line2[18];
 
 	void printString(char *s)
 	{
-	   glPushAttrib (GL_LIST_BIT);
-	   glListBase(fontOffset);
-	   glCallLists((GLsizei) strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
-	   glPopAttrib ();
+	   glutBitmapString(GLUT_BITMAP_9_BY_15, (const unsigned char *)s);
+
 	}
 public:
 
@@ -38,6 +36,7 @@ public:
 		bg = grey;
 		fg = black;
 		backLight_register();
+		i2cbus_register();
 //		sprintf(line1,"ABCDEFGHILMNOPQR");
 //		sprintf(line2,"1234567890123456");
 		sprintf(line1,"Homer Emulator");
@@ -53,6 +52,12 @@ public:
 		return(board.getLcdBacklight());
 	}
 
+	void i2cbus_register() {
+//		board.getI2c0().reg_write(i2cwr_reg, [&] (int fd, const void *buffer, size_t size) {
+//			const unsigned char *p = (const unsigned char *)buffer;
+//			cerr << "SZ=" << size << " p[0]=" << hex << p[0] << endl;
+//		});
+	}
 	void backLight_register() {
 		board.getLcdBacklight().reg_write(light_reg, [&] ( int fd, const void *buffer, size_t size ) {
 		   	   const unsigned char *p = (const unsigned char *)buffer;

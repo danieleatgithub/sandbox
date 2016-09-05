@@ -42,21 +42,20 @@ private:
 	shared_ptr<MenuLeaf> pressure = std::make_shared<MenuLeaf>(string("pressure"));
 
 	MoveVisitor 	mv;
-	DisplayVisitor  dw;
 
 	void leave(KeyButton& k) {
-		active_element->exe_leave(dw,k);
+//		active_element->exe_leave(dw,k);
 	}
 	void enter(KeyButton& k) {
-		active_element->exe_enter(dw,k);
+//		active_element->exe_enter(dw,k);
 	}
 	void click(KeyButton& k) {
-		active_element->exe_click(dw,k);
+//		active_element->exe_click(dw,k);
 	}
 
 
 public:
-    HomerMenu(KeyPanel& kpl, Scheduler& sch, Display& display):  keyPanel(kpl), scheduler(sch), mv(root), dw(display){
+    HomerMenu(KeyPanel& kpl, Scheduler& sch):  keyPanel(kpl), scheduler(sch), mv(root){
 
 		root->add(welcome);
 		root->add(ciao);

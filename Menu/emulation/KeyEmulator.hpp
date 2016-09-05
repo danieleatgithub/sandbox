@@ -380,6 +380,11 @@ public:
 		return(ret);
 
     }
+    int gl_stop() {
+    	return(0);
+    }
+
+
    /**
      * Start text based emulator (Deprecated)
      *

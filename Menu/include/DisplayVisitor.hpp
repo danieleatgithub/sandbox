@@ -23,16 +23,16 @@
 namespace homerio {
 
 class DisplayVisitor : public MenuActionVisitor {
-	Display& dp;
+//	Display& dp;
 public:
-	DisplayVisitor(Display& dply) : dp(dply){ };
+	DisplayVisitor() { };
 	virtual ~DisplayVisitor() {};
 
 	virtual void enter(MenuLeaf&  l,KeyButton& k) 	{
 		TRACE_TMP;
 	}
 	virtual void leave(MenuLeaf&  l,KeyButton& k) {
-		dp.clear();
+//		dp.clear();
 		TRACE_TMP;
 	}
 	virtual void click(MenuLeaf& l,KeyButton& k) {

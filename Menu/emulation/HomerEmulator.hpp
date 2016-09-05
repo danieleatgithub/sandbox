@@ -31,53 +31,47 @@ struct GL_callbacks {
 	static void  timer(int value);
 	static void  idle();
 
-	GL_callbacks () {}
-	static void setHomerEmulator(HomerEmulator* ptr) {
-		homerEmulator = ptr;
+
+	void setHomerEmulator(HomerEmulator* e) {
+		GL_callbacks::homerEmulator = e;
 	}
-	static HomerEmulator *homerEmulator;
+	void setDisplayEmulator(WinstarEmulator* d) {
+		GL_callbacks::displayEmulator = d;
+	}
+
+	static HomerEmulator 	*homerEmulator;
+	static WinstarEmulator	*displayEmulator;
+
+
 };
 
 
 class HomerEmulator {
 private:
-	int gl_argc;
-	char **gl_argv;
-
-	// Emulated stuff
-	Scheduler&			scheduler;
-	KeyPanel&			keyPanel;
-	BoardEmulated&   	acquaA5;
-
-	KeyEmulator 		key_emulator;
-	WinstarEmulator		display;
+	char *myargv [1];
+	int myargc;
 
 	unsigned int		refreshRate;
+public:
+	KeyEmulator keyEmulator;
+	GL_callbacks callbacks;
+
 	void makeRasterFont(void);
+	const string &getKeyEventFilename() {
+		return keyEmulator.getEvent();
+	}
 
 public:
 
-	HomerEmulator(int gl_argc, char** gl_argv,Scheduler& shd,KeyPanel& kp, BoardEmulated& board);
-	virtual ~HomerEmulator() {
-		refreshRate = HEMUL_REFRESHRATE;
-	};
+	HomerEmulator(WinstarEmulator *emulatedDisplay);
+	virtual ~HomerEmulator() {};
 	int start();
-
-	KeyEmulator& getKeyEmulator() {
-		return key_emulator;
-	}
-
-	 WinstarEmulator& getDisplay()  {
-		return display;
-	}
-
-
+	int stop();
 	void mainLoop();
 
 	unsigned int getRefreshRate() const {
 		return refreshRate;
 	}
-
 	void setRefreshRate(unsigned int refreshRate) {
 		this->refreshRate = refreshRate;
 	}
