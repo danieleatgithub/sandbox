@@ -22,10 +22,10 @@
 
 namespace homerio {
 
-class DisplayVisitor : public MenuActionVisitor {
-//	Display& dp;
+class DisplayVisitor  : public MenuActionVisitor {
+	Display& dp;
 public:
-	DisplayVisitor() { };
+	DisplayVisitor(Display& display) : dp(display) {	};
 	virtual ~DisplayVisitor() {};
 
 	virtual void enter(MenuLeaf&  l,KeyButton& k) 	{

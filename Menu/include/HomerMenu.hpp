@@ -42,15 +42,22 @@ private:
 	shared_ptr<MenuLeaf> pressure = std::make_shared<MenuLeaf>(string("pressure"));
 
 	MoveVisitor 	mv;
+	vector<shared_ptr<MenuActionVisitor>> visitors;
 
 	void leave(KeyButton& k) {
-//		active_element->exe_leave(dw,k);
+	    for(auto v : visitors) {
+	    	active_element->exe_leave(*v,k);
+	    }
 	}
 	void enter(KeyButton& k) {
-//		active_element->exe_enter(dw,k);
+	    for(auto v : visitors) {
+	    	active_element->exe_enter(*v,k);
+	    }
 	}
 	void click(KeyButton& k) {
-//		active_element->exe_click(dw,k);
+	    for(auto v : visitors) {
+	    	active_element->exe_click(*v,k);
+	    }
 	}
 
 
@@ -98,6 +105,9 @@ public:
 	}
 	virtual ~HomerMenu() {}
 
+	void addActionVisitor(const shared_ptr<MenuActionVisitor>& visitor) {
+		visitors.push_back(visitor);
+	}
 };
 
 

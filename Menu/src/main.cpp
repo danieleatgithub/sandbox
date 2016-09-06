@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
 	Scheduler			*scheduler;
 	KeyPanel			*keyPanel;
 	HomerMenu			*menu;
+	DisplayVisitor		*displayVisitor;
 
 	// Emulated stuff
 	BoardEmulated   	*acquaA5;
@@ -66,6 +67,10 @@ int main(int argc, char** argv) {
 	display	  = new WinstarEmulator(*keyPanel,*scheduler,*acquaA5);
 	emulator  = new HomerEmulator(display);
 
+	displayVisitor = new DisplayVisitor(*display);
+	shared_ptr<MenuActionVisitor> dw(displayVisitor);
+	menu->addActionVisitor(dw);
+
 	emulator->start();
 	keyPanel->set_event_filename(emulator->getKeyEventFilename().c_str());
 	keyPanel->start();
@@ -80,6 +85,7 @@ int main(int argc, char** argv) {
 
     sleep(1);
 
+    delete(displayVisitor);
     delete(emulator);
     delete(menu);
     delete(display);
