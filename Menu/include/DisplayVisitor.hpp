@@ -29,10 +29,11 @@ public:
 	virtual ~DisplayVisitor() {};
 
 	virtual void enter(MenuLeaf&  l,KeyButton& k) 	{
+		dp.dpy_puts(l.get_label().c_str());
 		TRACE_TMP;
 	}
 	virtual void leave(MenuLeaf&  l,KeyButton& k) {
-//		dp.clear();
+		dp.clear();
 		TRACE_TMP;
 	}
 	virtual void click(MenuLeaf& l,KeyButton& k) {
@@ -41,9 +42,11 @@ public:
 
 
 	virtual void enter(SubMenu& l,KeyButton& k) 	{
+		dp.dpy_puts(l.get_label().c_str());
 		TRACE_TMP2;
 	}
 	virtual void leave(SubMenu& l,KeyButton& k) {
+		dp.clear();
 		TRACE_TMP2;
 	}
 	virtual void click(SubMenu& l,KeyButton& k) {

@@ -18,7 +18,7 @@
 
 namespace homerio {
 
-
+// https://www.kernel.org/doc/Documentation/i2c/dev-interface
 class I2cBus {
 protected:
 	const char *bus;

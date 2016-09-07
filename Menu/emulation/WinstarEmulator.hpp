@@ -21,9 +21,10 @@ class WinstarEmulator: public Winstar {
 	GLfloat *bg,*fg;
 	BoardEmulated& 		board;
 	Registration		light_reg,i2cwr_reg;
+	bool ready;
 	char line1[18];
 	char line2[18];
-
+	unsigned int cl1,cl2;
 	void printString(char *s)
 	{
 	   glutBitmapString(GLUT_BITMAP_9_BY_15, (const unsigned char *)s);
@@ -35,6 +36,9 @@ public:
 		Winstar(kpnl,shd,board.getI2c0(), board.getLcdReset(), board.getLcdBacklight()), board(board) {
 		bg = grey;
 		fg = black;
+		cl1 = 0;
+		cl2 = 0;
+		ready = false;
 		backLight_register();
 		i2cbus_register();
 //		sprintf(line1,"ABCDEFGHILMNOPQR");
@@ -53,10 +57,26 @@ public:
 	}
 
 	void i2cbus_register() {
-//		board.getI2c0().reg_write(i2cwr_reg, [&] (int fd, const void *buffer, size_t size) {
-//			const unsigned char *p = (const unsigned char *)buffer;
-//			cerr << "SZ=" << size << " p[0]=" << hex << p[0] << endl;
-//		});
+		board.getI2c0().reg_write(i2cwr_reg, [&] (int fd, const void *buffer, size_t size) {
+			const unsigned char *p = (const unsigned char *)buffer;
+			// FIXME: change GL init dependency logic
+			if(!ready) return;
+			if(size == 2 && p[0] == 0 && p[1] == 1) {
+				// dpy clear
+				sprintf(line1,"                ");
+				sprintf(line2,"                ");
+				cl1 = 0;
+				cl2 = 0;
+				this->draw();
+			}
+			if(size == 2 && p[0] == 0x40) {
+				// dpy clear
+				line1[cl1++] = p[1];
+				this->draw();
+			}
+
+			cerr << "SZ=" << size << " p[0]=" << hex << p[0] << endl;
+		});
 	}
 	void backLight_register() {
 		board.getLcdBacklight().reg_write(light_reg, [&] ( int fd, const void *buffer, size_t size ) {
@@ -87,7 +107,12 @@ public:
 			   bg = background;
 			   fg = foreground;
 	}
-
+	void start() {
+		ready = true;
+	}
+	void stop() {
+		ready = false;
+	}
 
 
 };

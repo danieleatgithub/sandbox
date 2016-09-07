@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
 	menu->addActionVisitor(dw);
 
 	emulator->start();
+	display->start();
 	keyPanel->set_event_filename(emulator->getKeyEventFilename().c_str());
 	keyPanel->start();
     display->dpy_open();

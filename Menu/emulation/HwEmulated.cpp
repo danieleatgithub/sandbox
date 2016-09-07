@@ -43,7 +43,13 @@ int I2cBusEmulated::read(int fd, void *buf, size_t nbyte) {
 }
 int I2cBusEmulated::write(int fd, const void *buffer, size_t size) {
 	Logger logdev = Logger::getInstance(LOGDEVICE);
-	LOG4CPLUS_TRACE(logdev, "fd=" << fd << hex << ",buf=0x" << buffer << ",size=" << dec << size << " file=" << filedescriptors[fd]  );
+	uint8_t tmp[2] = {0 ,0};
+	if(size == 2) {
+		tmp[0] = ((uint8_t *) buffer)[0];
+		tmp[1] = ((uint8_t *) buffer)[1];
+	}
+
+	LOG4CPLUS_TRACE(logdev, "fd=" << fd << hex << ",buf=0x" << buffer << " [0x" << (unsigned int)tmp[0] << "," << (unsigned int)tmp[1] << "],size=" << dec << size << " file=" << filedescriptors[fd]  );
 	write_obs(fd, buffer, size);
 	return(size);
 }
