@@ -54,18 +54,19 @@ int I2cBusEmulated::write(int fd, const void *buffer, size_t size) {
 	return(size);
 }
 int I2cBusEmulated::ioctl(int fd, unsigned long int request, ...) {
-//	va_list argptr;
-//	unsigned int address;
-//	cerr << "I2cBusEmulated ioctl" << "req=" << hex << request;
-//
-//	switch(request) {
-//	case I2C_SLAVE:
-//		address = va_arg(argptr,unsigned int);
-//		cerr << "add=" << hex << address << endl;
-//		break;
-//	default:
-//		return(-1);
-//	}
+	va_list argptr;
+	unsigned int addr;
+	cerr << "I2cBusEmulated ioctl" << "req=" << hex << request;
+
+	switch(request) {
+	case I2C_SLAVE:
+		addr = va_arg(argptr,unsigned int);
+		cerr << "add=" << hex << addr << endl;
+		this->address = addr;
+		break;
+	default:
+		return(-1);
+	}
 	Logger logdev = Logger::getInstance(LOGDEVICE);
 	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  );
 	return(0);

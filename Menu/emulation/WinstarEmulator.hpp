@@ -107,13 +107,11 @@ public:
 			   bg = background;
 			   fg = foreground;
 	}
-	void start() {
-		ready = true;
-	}
-	void stop() {
-		ready = false;
-	}
-
+    int reset() {
+    	int ret = Winstar::reset();
+		if(ret >= 0)ready = true;
+		return(ret);
+    }
 
 };
 

@@ -26,6 +26,7 @@ namespace homerio {
 
 class I2cBusEmulated : public I2cBus {
 private:
+	unsigned int address;
 	map<int,string> filedescriptors;
     // Observers
     Subject<void (int filedes, const void *buffer, size_t size)> write_obs; // Triggered on key released

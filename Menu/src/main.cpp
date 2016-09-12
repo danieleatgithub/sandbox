@@ -72,15 +72,14 @@ int main(int argc, char** argv) {
 	menu->addActionVisitor(dw);
 
 	emulator->start();
-	display->start();
+	display->reset();
 	keyPanel->set_event_filename(emulator->getKeyEventFilename().c_str());
 	keyPanel->start();
-    display->dpy_open();
+
     display->set_backlight(true);
 
     emulator->mainLoop();
 
-    display->dpy_close();
     keyPanel->stop();
     emulator->stop();
 

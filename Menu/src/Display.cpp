@@ -30,12 +30,16 @@ struct pinmap_s;
 
 
 Display::Display(KeyPanel &kpnl, Scheduler &shd,I2cBus& bus, GpioPort& rst, GpioPort& backlight) : keyPanel(kpnl), scheduler(shd), i2cBus(bus) {
-    init();
+    this->write_usleep = 100;
+    this->address = 0xff;
     this->bus = string(i2cBus.getBus());
     this->rst = string(rst.getName());
     this->backlight = string(backlight.getName());
     this->backlight_state = true;
     this->key_light_delay = 1000;
+
+    timedLightOff.setCallback([&] () { this->set_backlight(false);});
+    timedLightOff.setInterval(10);
 
     reset_pin = new GpioPin(rst);
     reset_pin->pin_export();
@@ -58,47 +62,31 @@ Display::Display(KeyPanel &kpnl, Scheduler &shd,I2cBus& bus, GpioPort& rst, Gpio
 
 
 Display::~Display() {
-    dpy_close();
     reset_pin->pin_close();
     backlight_pin->pin_close();
     delete (reset_pin);
     delete (backlight_pin);
 }
 
-void Display::init() {
-    this->write_usleep = 100;
-    this->fd = -1;
-    this->address = 0xff;
-    timedLightOff.setCallback([&] () { this->set_backlight(false);});
-    timedLightOff.setInterval(10);
 
-}
 
-int Display::dpy_open() {
+//int Display::dpy_init() {
+//
+//    // Open i2c
+//	Logger logdev = Logger::getInstance(LOGDEVICE);
+//    fd = i2cBus.open(bus.c_str(), O_RDWR);
+//    if (fd < 0) return (fd);
+//    if (i2cBus.ioctl(fd, I2C_SLAVE, this->address) < 0) {
+//    	LOG4CPLUS_ERROR(logdev, __PRETTY_FUNCTION__ << "ioctl error: " << strerror(errno) << "\n");
+//    	i2cBus.close(fd);
+//        return -1;
+//    }
+//    return (device_init());
+//}
 
-    // Open i2c
-	Logger logdev = Logger::getInstance(LOGDEVICE);
-    fd = i2cBus.open(bus.c_str(), O_RDWR);
-    if (fd < 0) return (fd);
-    if (i2cBus.ioctl(fd, I2C_SLAVE, this->address) < 0) {
-    	LOG4CPLUS_ERROR(logdev, __PRETTY_FUNCTION__ << "ioctl error: " << strerror(errno) << "\n");
-    	i2cBus.close(fd);
-        return -1;
-    }
-    return (device_init());
-}
 
-int Display::dpy_close() {
-    int ret;
-    ret = i2cBus.close(this->fd);
-    return (ret);
-}
 
-int Display::reset() {
-    reset_pin->flip(1000);  // 1 milli
-    usleep(100000);         // 100 milli
-    return (device_init());
-}
+
 int Display::set_backlight(bool state) {
 	int ret;
 	ret = backlight_pin->setState(state ? STATE_ON : STATE_OFF);
