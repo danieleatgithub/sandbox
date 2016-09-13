@@ -26,14 +26,18 @@ namespace homerio {
 
 class I2cBusEmulated : public I2cBus {
 private:
-	unsigned int address;
+	unsigned int active_device;
 	map<int,string> filedescriptors;
     // Observers
-    Subject<void (int filedes, const void *buffer, size_t size)> write_obs; // Triggered on key released
+	using WriteObserver = Subject<void (int filedes, const void *buffer, size_t size)>;
+
+	map<unsigned int,WriteObserver> write_obs_map; // Write Observer Map by device address
 
 public:
 
-	I2cBusEmulated(const char *bus) : I2cBus(bus) {};
+	I2cBusEmulated(const char *bus) : I2cBus(bus) {
+		active_device = 0;
+	};
 	 ~I2cBusEmulated() {};
 
 	int open(const char *file, int flag);
@@ -43,8 +47,8 @@ public:
 	__off_t lseek (int fd, __off_t __offset, int __whence);
 	int close(int fd);
 
-	void reg_write(Registration& reg, std::function<void (int filedes, const void *buffer, size_t size)> f) {
-    	reg = write_obs.registerObserver(f);
+	void reg_write(Registration& reg, unsigned int address, std::function<void (int filedes, const void *buffer, size_t size)> f) {
+		reg = write_obs_map[address].registerObserver(f);
 	}
 
 };

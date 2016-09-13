@@ -33,6 +33,7 @@ int I2cBusEmulated::open(const char *file, int flag) {
 }
 int I2cBusEmulated::close(int fd) {
 	Logger logdev = Logger::getInstance(LOGDEVICE);
+	this->active_device = -1;
 	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  );
 	return(0);
 }
@@ -48,29 +49,28 @@ int I2cBusEmulated::write(int fd, const void *buffer, size_t size) {
 		tmp[0] = ((uint8_t *) buffer)[0];
 		tmp[1] = ((uint8_t *) buffer)[1];
 	}
-
 	LOG4CPLUS_TRACE(logdev, "fd=" << fd << hex << ",buf=0x" << buffer << " [0x" << (unsigned int)tmp[0] << "," << (unsigned int)tmp[1] << "],size=" << dec << size << " file=" << filedescriptors[fd]  );
-	write_obs(fd, buffer, size);
+	if(write_obs_map.find(active_device) != write_obs_map.end()) {
+		write_obs_map[active_device](fd, buffer, size);
+	}
 	return(size);
 }
 int I2cBusEmulated::ioctl(int fd, unsigned long int request, ...) {
-	va_list argptr;
-	unsigned int addr;
-	cerr << "I2cBusEmulated ioctl" << "req=" << hex << request;
+	va_list arguments;
+	va_start ( arguments, request );
 
 	switch(request) {
-	case I2C_SLAVE:
-		addr = va_arg(argptr,unsigned int);
-		cerr << "add=" << hex << addr << endl;
-		this->address = addr;
-		break;
-	default:
-		return(-1);
+		case I2C_SLAVE:
+			this->active_device = va_arg(arguments,unsigned int);
+			break;
+		default:
+			return(-1);
 	}
 	Logger logdev = Logger::getInstance(LOGDEVICE);
 	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  );
 	return(0);
 }
+
 __off_t I2cBusEmulated::lseek (int fd, __off_t __offset, int __whence) {
 	Logger logdev = Logger::getInstance(LOGDEVICE);
 	LOG4CPLUS_TRACE(logdev, "fd=" << fd << ",file=" << filedescriptors[fd]  );

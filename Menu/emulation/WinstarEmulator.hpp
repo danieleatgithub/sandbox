@@ -54,7 +54,7 @@ public:
 	}
 
 	void i2cbus_register() {
-		board.getI2c0().reg_write(i2cwr_reg, [&] (int fd, const void *buffer, size_t size) {
+		board.getI2c0().reg_write(i2cwr_reg, WINSTAR_I2C_ADD, [&] (int fd, const void *buffer, size_t size) {
 			const unsigned char *p = (const unsigned char *)buffer;
 			// FIXME: change GL init dependency logic
 			if(!ready) return;
@@ -80,10 +80,8 @@ public:
 		board.getLcdBacklight().reg_write(light_reg, [&] ( int fd, const void *buffer, size_t size ) {
 		   	   const unsigned char *p = (const unsigned char *)buffer;
 		   	   if(p[0] == 0x30) {
-		   		   cerr << "light off" << endl;
 		   		   this->setColor(grey,black);
 		   	   } else {
-		   		   cerr << "light on" << endl;
 		   		this->setColor(white,black);
 		   	   }
 		   	   glutPostRedisplay();
