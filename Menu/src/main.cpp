@@ -56,28 +56,25 @@ int main(int argc, char** argv) {
 	WinstarEmulator		*display;
 	HomerEmulator       *emulator;
 
-
-	// Real stuff
 	keyPanel  = new KeyPanel();
 	scheduler = new Scheduler();
-	menu 	  = new HomerMenu(*keyPanel,*scheduler);
-
-	// Emulated stuff
 	acquaA5   = new BoardEmulated();
 	display	  = new WinstarEmulator(*keyPanel,*scheduler,*acquaA5);
 	emulator  = new HomerEmulator(display);
 
 	displayVisitor = new DisplayVisitor(*display);
 	shared_ptr<MenuActionVisitor> dw(displayVisitor);
-	menu->addActionVisitor(dw);
 
 	emulator->start();
 	display->reset();
 	keyPanel->set_event_filename(emulator->getKeyEventFilename().c_str());
 	keyPanel->start();
 
-    display->set_backlight(true);
+	menu 	  = new HomerMenu(*keyPanel,*scheduler);
+	menu->addActionVisitor(dw);
 
+
+    display->set_backlight(true);
     emulator->mainLoop();
 
     keyPanel->stop();

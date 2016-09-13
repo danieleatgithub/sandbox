@@ -10,6 +10,7 @@
 #include <Menu.hpp>
 #include <mutex>
 #include <memory>
+#include <Sysinfo.h>
 
 namespace homerio {
 
@@ -25,13 +26,14 @@ private:
     KeyPanel &keyPanel;
     Scheduler& scheduler;
     Registration rkeyPanel, rWrDisplay;
+    Sysinfo sysinfo = Sysinfo::get_instance();
 
 
 	KeyButton nokey;
 	std::mutex mutex;
 
 	shared_ptr<SubMenu> root = std::make_shared<SubMenu>(string("root"));
-	shared_ptr<MenuLeaf> welcome = std::make_shared<MenuLeaf>(string("welcome"));
+	shared_ptr<MenuLeaf> welcome = std::make_shared<MenuLeaf>(string("Homer"),"IP:"+ sysinfo.get_local_ip("eth0"));
 	shared_ptr<MenuLeaf> ciao = std::make_shared<MenuLeaf>(string("ciao"));
 	shared_ptr<MenuLeaf> dany = std::make_shared<MenuLeaf>(string("dany"));
 	shared_ptr<SubMenu> system = std::make_shared<SubMenu>(string("system"));

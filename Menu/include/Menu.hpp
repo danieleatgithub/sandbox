@@ -140,9 +140,16 @@ public:
  * Terminal passive Menu element
  */
 class MenuLeaf : public MenuComponent {
-
+	string value;
 public:
-   MenuLeaf(string label)  : MenuComponent(label) {}
+   MenuLeaf(string label)  : MenuComponent(label) {
+	   this->value = string("");
+   }
+   MenuLeaf(string label,string value)  : MenuComponent(label) {
+	   this->value = value;
+   }
+
+
    // Visitor Interfaces
    virtual void exe_click(MenuActionVisitor& m,KeyButton& k) {
 	   m.click(*this,k);
@@ -157,6 +164,9 @@ public:
  	   return(m.move(*this,k));
    }
 
+	const string& getValue() const {
+		return value;
+	}
 };
 
 

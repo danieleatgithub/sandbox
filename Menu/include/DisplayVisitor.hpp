@@ -30,6 +30,8 @@ public:
 
 	virtual void enter(MenuLeaf&  l,KeyButton& k) 	{
 		dp.dpy_puts(l.get_label().c_str());
+		dp.line2_home();
+		dp.dpy_puts(l.getValue().c_str());
 		TRACE_TMP;
 	}
 	virtual void leave(MenuLeaf&  l,KeyButton& k) {
@@ -43,6 +45,7 @@ public:
 
 	virtual void enter(SubMenu& l,KeyButton& k) 	{
 		dp.dpy_puts(l.get_label().c_str());
+		dp.dpy_puts(">");
 		TRACE_TMP2;
 	}
 	virtual void leave(SubMenu& l,KeyButton& k) {
