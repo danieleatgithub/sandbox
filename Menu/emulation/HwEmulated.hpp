@@ -78,27 +78,39 @@ public:
 
 
 
-class BoardEmulated {
+class BoardEmulated : public Board {
 	I2cBusEmulated    i2c_0;
 	GpioPortEmulated  lcd_backlight;
 	GpioPortEmulated  lcd_reset;
 
 public:
-	BoardEmulated() :
+	BoardEmulated() : Board(),
 		i2c_0(I2C_BUS), lcd_backlight(LCD_BACKLIGHT_PIN), lcd_reset(LCD_RESET_PIN)  {
 
 	};
 	~BoardEmulated() {
 	}
-	I2cBusEmulated& getI2c0() {
+	I2cBus& getI2c0() {
 		return i2c_0;
 	}
 
-	GpioPortEmulated& getLcdBacklight() {
+	GpioPort& getLcdBacklight() {
 		return lcd_backlight;
 	}
 
-	GpioPortEmulated& getLcdReset() {
+	GpioPort& getLcdReset() {
+		return lcd_reset;
+	}
+
+
+	I2cBusEmulated& getEmulatedI2c0() {
+		return i2c_0;
+	}
+	GpioPortEmulated& getEmulatedLcdBacklight() {
+		return lcd_backlight;
+	}
+
+	GpioPortEmulated& getEmulatedLcdReset() {
 		return lcd_reset;
 	}
 

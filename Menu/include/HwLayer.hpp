@@ -63,7 +63,15 @@ public:
 };
 
 
+class Board {
+public:
+	Board() {};
+	virtual ~Board() {};
+	virtual I2cBus& getI2c0() = 0;
+	virtual GpioPort& getLcdBacklight() = 0;
+	virtual GpioPort& getLcdReset() = 0;
 
+};
 
 }
 #endif /* HWLAYER_HPP_ */

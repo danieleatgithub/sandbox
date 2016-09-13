@@ -33,7 +33,7 @@ class WinstarEmulator: public Winstar {
 public:
 
 	WinstarEmulator(KeyPanel &kpnl, Scheduler &shd, BoardEmulated& board) :
-		Winstar(kpnl,shd,board.getI2c0(), board.getLcdReset(), board.getLcdBacklight()), board(board) {
+		Winstar(kpnl,shd, board), board(board) {
 		bg = grey;
 		fg = black;
 		cursor = &line1[0];
@@ -46,15 +46,15 @@ public:
 
 	virtual ~WinstarEmulator() {};
 
-	GpioPortEmulated& getLcdReset() {
+	GpioPort& getLcdReset() {
 		return(board.getLcdReset());
 	}
-	GpioPortEmulated& getLcdBacklight() {
+	GpioPort& getLcdBacklight() {
 		return(board.getLcdBacklight());
 	}
 
 	void i2cbus_register() {
-		board.getI2c0().reg_write(i2cwr_reg, WINSTAR_I2C_ADD, [&] (int fd, const void *buffer, size_t size) {
+		board.getEmulatedI2c0().reg_write(i2cwr_reg, WINSTAR_I2C_ADD, [&] (int fd, const void *buffer, size_t size) {
 			const unsigned char *p = (const unsigned char *)buffer;
 			// FIXME: change GL init dependency logic
 			if(!ready) return;
@@ -77,7 +77,7 @@ public:
 		});
 	}
 	void backLight_register() {
-		board.getLcdBacklight().reg_write(light_reg, [&] ( int fd, const void *buffer, size_t size ) {
+		board.getEmulatedLcdBacklight().reg_write(light_reg, [&] ( int fd, const void *buffer, size_t size ) {
 		   	   const unsigned char *p = (const unsigned char *)buffer;
 		   	   if(p[0] == 0x30) {
 		   		   this->setColor(grey,black);

@@ -37,8 +37,8 @@ void Winstar::init() {
 
 }
 
-Winstar::Winstar(KeyPanel &kpnl, Scheduler &shd,I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight) :
-    Display(kpnl,shd,i2cBus, rst, backlight) {
+Winstar::Winstar(KeyPanel &kpnl, Scheduler &shd, Board& board) :
+    Display(kpnl,shd,board.getI2c0(), board.getLcdReset(), board.getLcdBacklight()) {
     init();
 }
 

@@ -94,7 +94,7 @@ class Winstar: public Display {
     void init();
 
   public:
-    Winstar(KeyPanel &key_panel, Scheduler& scheduler,I2cBus& i2cBus, GpioPort& rst, GpioPort& backlight);
+    Winstar(KeyPanel &key_panel, Scheduler &scheduler, Board& board);
     virtual ~Winstar();
 
     int device_init() {
