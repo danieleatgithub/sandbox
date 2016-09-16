@@ -49,7 +49,6 @@ int main(int argc, char** argv) {
 	Scheduler			*scheduler;
 	KeyPanel			*keyPanel;
 	HomerMenu			*menu;
-	DisplayVisitor		*displayVisitor;
 
 	// Emulated stuff
 	BoardEmulated   	*acquaA5;
@@ -62,8 +61,7 @@ int main(int argc, char** argv) {
 	display	  = new WinstarEmulator(*keyPanel,*scheduler,*acquaA5);
 	emulator  = new HomerEmulator(display);
 
-	displayVisitor = new DisplayVisitor(*display);
-	shared_ptr<MenuActionVisitor> dw(displayVisitor);
+	shared_ptr<MenuActionVisitor> dw(new DisplayVisitor(*display));
 
 	emulator->start();
 	display->reset();
@@ -73,7 +71,6 @@ int main(int argc, char** argv) {
 	menu 	  = new HomerMenu(*keyPanel,*scheduler);
 	menu->addActionVisitor(dw);
 
-
     display->set_backlight(true);
     emulator->mainLoop();
 
@@ -82,7 +79,6 @@ int main(int argc, char** argv) {
 
     sleep(1);
 
-    delete(displayVisitor);
     delete(emulator);
     delete(menu);
     delete(display);
