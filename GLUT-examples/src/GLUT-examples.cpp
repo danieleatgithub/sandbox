@@ -110,13 +110,13 @@ display ()
   glTexCoord2f (0.0f, 0.0f); //Texture co-ordinate origin or lower left corner
   glVertex3f (-10.0f, -1.0f, -15.0f);
 
-  glTexCoord2f (10.0f, 0.0f); //Texture co-ordinate for repeating image ten times form			      //origin to lower right corner
-  glVertex3f (10.0f, -1.0f, -15.0f);
+  glTexCoord2f (1.0f, 0.0f); //Texture co-ordinate for repeating image ten times form			      //origin to lower right corner
+  glVertex3f (1.0f, -1.0f, -15.0f);
 
-  glTexCoord2f (10.0f, 10.0f); //repeat texture ten times form lower to top right corner.
-  glVertex3f (10.0f, 15.0f, -15.0f);
+  glTexCoord2f (1.0f, 1.0f); //repeat texture ten times form lower to top right corner.
+  glVertex3f (1.0f, 15.0f, -15.0f);
 
-  glTexCoord2f (0.0f, 10.0f); //repeat texture ten time form top right to top left corner.
+  glTexCoord2f (0.0f, 1.0f); //repeat texture ten time form top right to top left corner.
   glVertex3f (-10.0f, 15.0f, -15.0f);
 
   glEnd ();
