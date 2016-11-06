@@ -28,19 +28,19 @@ keypress (unsigned char key, int x, int y)
     }
 }
 
-void
-display ()
-
+GLuint
+LoadBMPTexture (const char *filename, unsigned int width, unsigned int height)
 {
   GLuint texture;
-  FILE* fp = fopen (
-      "/wks/workspace/sandbox/GLUT-examples/resource/fpanel800x129x24b.bmp",
-      "r");
-  fread (bitmap, 1, 54, fp);
-  int xy = fread (bitmap, 3 * sizeof(char), 800 * 129, fp);
-  if (xy != 800 * 129)
+  void *buf;
+  FILE* fp = fopen (filename, "r");
+  buf = malloc (3 * sizeof(char) * width * height);
+  fread (buf, 1, 54, fp);
+  int xy = fread (buf, 3 * sizeof(char), width * height, fp);
+  if (xy != width * height)
     {
       cerr << "Wrong size " << xy;
+      free (buf);
       exit (1);
     }
   fclose (fp);
@@ -49,7 +49,20 @@ display ()
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, 800, 129, 0, GL_RGB, GL_UNSIGNED_BYTE,
-		bitmap);
+		buf);
+  free (buf);
+  return (texture);
+
+}
+void
+display ()
+
+{
+  GLuint texture;
+
+  texture = LoadBMPTexture (
+      "/wks/workspace/sandbox/GLUT-examples/resource/fpanel800x129x24b.bmp",
+      800, 129);
 
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable (GL_TEXTURE_2D);
