@@ -36,21 +36,6 @@ void GLFWCALL handleKeypress(int key,int press)//The key that was pressed
       }
   }
 
-//Called when the window is resized
-void GLFWCALL handleResize(int width,int height)
-
-  {
-    //Tell OpenGL how to convert from coordinates to pixel values
-    glViewport( 0, 0, width, height );
-    glMatrixMode( GL_PROJECTION );//Switch to setting the camera perspective
-    //Set the camera perspective
-    glLoadIdentity();//reset the camera
-    gluPerspective( 45.0f,//camera angle
-	(GLfloat)width/(GLfloat)height,//The width to height ratio
-	1.0f,//The near z clipping coordinate
-	100.0f );//The far z clipping coordinate
-  }
-
 GLuint
 LoadTexture (const char* TextureName)
 
@@ -79,27 +64,10 @@ display ()
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode (GL_MODELVIEW); //Switch to the drawing perspective
   glLoadIdentity (); //Reset the drawing perspective
-  glTranslatef (0.0f, 0.0f, -35.0f); //Translate whole scene to -ve z-axis by -35 unit
+  glTranslatef (0.0f, 0.0f, 0.0f); //Translate whole scene to -ve z-axis by -35 unit
   GLuint text2D;
   text2D = LoadTexture (
-      "/wks/workspace/sandbox/GLUT-examples/resource/cicb.tga"); //loading image for texture
-
-//  glEnable (GL_TEXTURE_2D); //Enable texture
-//  glBindTexture (GL_TEXTURE_2D, text2D); //Binding texture
-//  glPushMatrix ();
-//  glBegin (GL_POLYGON); //Begin quadrilateral coordinates
-//  glNormal3f (0.0f, 0.0f, 1.0f); //normal vector
-//  glTexCoord2f (0.0f, 0.0f); //Texture co-ordinate origin or  lower left corner
-//  glVertex3f (-10.0f, -11.0f, 5.0f);
-//  glTexCoord2f (1.0f, 0.0f); //Texture co-ordinate lower right corner
-//  glVertex3f (10.0f, -11.0f, 5.0f);
-//  glTexCoord2f (1.0f, 1.0f); //Texture co-ordinate top right corner
-//  glVertex3f (10.0f, -1.0f, -15.0f);
-//  glTexCoord2f (0.0f, 1.0f); //Texture co-ordinate top left corner
-//  glVertex3f (-10.0f, -1.0f, -15.0f);
-//  glEnd (); //End quadrilateral coordinates
-//  glPopMatrix ();
-//  glDisable (GL_TEXTURE_2D);
+      "/wks/workspace/sandbox/GLUT-examples/resource/fpanel24.tga"); //loading image for texture
 
   glEnable (GL_TEXTURE_2D);
   glBindTexture (GL_TEXTURE_2D, text2D);
@@ -107,17 +75,19 @@ display ()
   glBegin (GL_POLYGON);
   glNormal3f (0.0f, 0.0f, 1.0f);
 
+  GLfloat left = -1.0f;
+  GLfloat right = 1.0f;
+  GLfloat up = 1.0f;
+  GLfloat down = -1.0f;
+
   glTexCoord2f (0.0f, 0.0f); //Texture co-ordinate origin or lower left corner
-  glVertex3f (-10.0f, -1.0f, -15.0f);
-
+  glVertex3f (left, down, 0.0f); // v1 low-sx
   glTexCoord2f (1.0f, 0.0f); //Texture co-ordinate for repeating image ten times form			      //origin to lower right corner
-  glVertex3f (1.0f, -1.0f, -15.0f);
-
+  glVertex3f (right, down, 0.0f); // v2 low-dx
   glTexCoord2f (1.0f, 1.0f); //repeat texture ten times form lower to top right corner.
-  glVertex3f (1.0f, 15.0f, -15.0f);
-
+  glVertex3f (right, up, 0.0f); // v3 up-dx
   glTexCoord2f (0.0f, 1.0f); //repeat texture ten time form top right to top left corner.
-  glVertex3f (-10.0f, 15.0f, -15.0f);
+  glVertex3f (left, up, 0.0f); // up-sx
 
   glEnd ();
   glPopMatrix ();
@@ -136,25 +106,16 @@ main ()
   bool running = true;
 
   initializeRendering ();
-
-  if (!glfwOpenWindow (800, // width of window
-
-      800, //height of window
-
+  glfwOpenWindowHint (GLFW_WINDOW_NO_RESIZE, GL_TRUE);
+  if (!glfwOpenWindow (900, // width of window
+      141, //height of window
       0,  //redbits
-
       0,  //greenbits
-
       0,  //bluebits
-
       0,  //alphabits
-
       0,  //depthbits
-
       0, //stencilbits
-
       GLFW_WINDOW) //mode
-
       )//return false if window is not created
 
     {
@@ -166,19 +127,13 @@ main ()
     }
 
   glfwSetWindowTitle ("codeincodeblock.blogspot.com - Texture");
-
-  glfwSetWindowSizeCallback (handleResize); //callback function of GLFW to handle window resize
-
   glfwSetKeyCallback (handleKeypress); //callback function to handle keypress
-
   while (running) // infinite loop to draw object again and again
 
     {              // because once object is draw then window is terminated
 
       display ();
-
       running = glfwGetWindowParam (GLFW_OPENED); //when glfw window is opened then it return true
-
       //if closed then return false
 
     }
