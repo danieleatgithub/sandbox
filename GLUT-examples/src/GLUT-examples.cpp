@@ -15,7 +15,8 @@ using namespace std;
 int main()
 
 {
-	GLUT_texture_main();
+//	GLUT_texture_main();
+	GLUT_polyoverlap_main();
 	return 0;
 }
 
