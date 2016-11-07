@@ -10,4 +10,5 @@
 
 extern int GLUT_texture_main();
 extern int GLUT_polyoverlap_main();
+extern int GLUT_polytextureoverlap_main();
 #endif /* GLUT_EXAMPLES_H_ */
